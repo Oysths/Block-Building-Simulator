@@ -6,7 +6,7 @@
 int windowWidth = 1000;
 int windowHeight = 650;
  
-int main(int argc, char** argv)
+int main()
 {
     double roll = 0.5;
     double pitch = 0.5;
@@ -21,7 +21,7 @@ int main(int argc, char** argv)
     
 
     SDL_SetMainReady();
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) != 0) {
+    if (SDL_Init(SDL_INIT_JOYSTICK) != 0) {
         std::cerr << "SDL_Init error: " << SDL_GetError() << "\n";
         return 1;
     }
@@ -43,9 +43,6 @@ int main(int argc, char** argv)
     }
  
     std::cout << "Åpnet joystick: " << SDL_JoystickName(js) << "\n";
-    std::cout << "Aksler: "   << SDL_JoystickNumAxes(js)
-<< "  Knapper: " << SDL_JoystickNumButtons(js)
-<< "  Hatter: "  << SDL_JoystickNumHats(js) << "\n";
  
     SDL_Event e;
 
@@ -56,16 +53,16 @@ int main(int argc, char** argv)
             if (e.type == SDL_JOYAXISMOTION) {
                 switch ((int)e.jaxis.axis) {
                     case 0:
-                        roll = (static_cast<double>(e.jaxis.value + 32768) / 65536);
+                        roll = (static_cast<double>(e.jaxis.value + 32768) / 65535);
                         break;
                     case 1:
-                        pitch = (static_cast<double>(e.jaxis.value + 32768) / 65536);
+                        pitch = (static_cast<double>(e.jaxis.value + 32768) / 65535);
                         break;
                     case 2:
-                        throttle = (static_cast<double>(e.jaxis.value + 32768) / 65536);
+                        throttle = (static_cast<double>(e.jaxis.value + 32768) / 65535);
                         break;
                     case 3:
-                        yaw = (static_cast<double>(e.jaxis.value + 32768) / 65536);
+                        yaw = (static_cast<double>(e.jaxis.value + 32768) / 65535);
                         break;
                 }
             }
