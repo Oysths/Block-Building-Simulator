@@ -12,11 +12,12 @@ int main(int argc, char** argv)
     double pitch = 0.5;
     double yaw = 0.5;
     double throttle = 0;
-    Point square1_point {150, 150};
-    int square_width = 200;
-    Point square2_point {(square1_point.x + square_width + 100), 150};
-    Point circle1 {(square1_point.x + yaw * square_width), (square1_point.y + (1 - throttle) * square_width)};
-    Point circle2 {(square2_point.x + roll * square_width), (square2_point.y + (1 - pitch) * square_width)};
+    int squareWidth = 200;
+    int spaceBetweenSquares = 100;
+    Point square1_point {((windowWidth - 2 * squareWidth - spaceBetweenSquares) / 2), ((windowHeight - squareWidth) / 2)};
+    Point square2_point {(square1_point.x + squareWidth + spaceBetweenSquares), square1_point.y};
+    Point circle1 {(square1_point.x + yaw * squareWidth), (square1_point.y + (1 - throttle) * squareWidth)};
+    Point circle2 {(square2_point.x + roll * squareWidth), (square2_point.y + (1 - pitch) * squareWidth)};
     
 
     SDL_SetMainReady();
@@ -69,12 +70,12 @@ int main(int argc, char** argv)
                 }
             }
         }
-        window.draw_rectangle(square1_point, square_width, square_width, Color::gray);
-        window.draw_rectangle(square2_point, square_width, square_width, Color::gray);
-        circle1.x = (square1_point.x + yaw * square_width);
-        circle1.y = (square1_point.y + (1 - throttle) * square_width);
-        circle2.x = (square2_point.x + roll * square_width);
-        circle2.y = (square2_point.y + (1 - pitch) * square_width);
+        window.draw_rectangle(square1_point, squareWidth, squareWidth, Color::gray);
+        window.draw_rectangle(square2_point, squareWidth, squareWidth, Color::gray);
+        circle1.x = (square1_point.x + yaw * squareWidth);
+        circle1.y = (square1_point.y + (1 - throttle) * squareWidth);
+        circle2.x = (square2_point.x + roll * squareWidth);
+        circle2.y = (square2_point.y + (1 - pitch) * squareWidth);
         window.draw_circle(circle1, 10, Color::black);
         window.draw_circle(circle2, 10, Color::black);
         window.next_frame();
