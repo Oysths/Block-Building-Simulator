@@ -51,14 +51,11 @@ int main(int argc, char** argv)
     AnimationWindow window(50, 50, windowWidth, windowHeight, SDL_JoystickName(js));
 
     while (!window.should_close()) {
-        //int i = 0;
-        //while (SDL_PollEvent(&e) && i < 10) {
-            //i++;
+        while (SDL_PollEvent(&e)) {
             if (e.type == SDL_JOYAXISMOTION) {
-                std::cout << (int)e.jaxis.axis << " = " << e.jaxis.value << endl;
                 switch ((int)e.jaxis.axis) {
                     case 0:
-                        yaw = (static_cast<double>(e.jaxis.value + 32768) / 65536);
+                        roll = (static_cast<double>(e.jaxis.value + 32768) / 65536);
                         break;
                     case 1:
                         pitch = (static_cast<double>(e.jaxis.value + 32768) / 65536);
@@ -67,10 +64,10 @@ int main(int argc, char** argv)
                         throttle = (static_cast<double>(e.jaxis.value + 32768) / 65536);
                         break;
                     case 3:
-                        roll = (static_cast<double>(e.jaxis.value + 32768) / 65536);
+                        yaw = (static_cast<double>(e.jaxis.value + 32768) / 65536);
                         break;
                 }
-            //}
+            }
         }
         window.draw_rectangle(square1_point, square_width, square_width, Color::gray);
         window.draw_rectangle(square2_point, square_width, square_width, Color::gray);
@@ -81,6 +78,7 @@ int main(int argc, char** argv)
         window.draw_circle(circle1, 10, Color::black);
         window.draw_circle(circle2, 10, Color::black);
         window.next_frame();
+        SDL_Delay(5);
     }
  
     SDL_JoystickClose(js);
