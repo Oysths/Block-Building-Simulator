@@ -1,3 +1,5 @@
+//a drone simulator, made by Axel and Ludvig:)
+
 #include "std_lib_facilities.h"
 #include "gameHandler.h"
 

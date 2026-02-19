@@ -1,6 +1,7 @@
 #pragma once
 #include "std_lib_facilities.h"
 #include "AnimationWindow.h"
+#include "render3d.h"
 //#include "getData.h"
 
 extern const int windowWidth;
