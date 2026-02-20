@@ -7,7 +7,7 @@ void changeToFPV() {
 }
 
 //MainMenu-class--------------------------------------------------------------
-MainMenu::MainMenu(AnimationWindow& window, gameModes& gameMode): window(window), gameMode(gameMode)
+MainMenu::MainMenu(AnimationWindow& window): window(window)
 {}
 
 void MainMenu::render() {
@@ -31,9 +31,20 @@ void MainMenu::addButton(double x, double y, double width, double height, string
 }
 
 
+//FPV-class------------------------------------------------------------------
+FPV::FPV(AnimationWindow& window): window{window}
+{}
+
+void FPV::render() {
+    window.setBackgroundColor(Color::white);
+    world.transformCoords(player);
+    world.renderPoints(window);
+}
+
+
 //updateScreen-class----------------------------------------------------------
 
-GameHandler::GameHandler(AnimationWindow& window, gameModes& gameMode): window(window), gameMode(gameMode), menu{window, gameMode}
+GameHandler::GameHandler(AnimationWindow& window, gameModes& gameMode): window(window), gameMode(gameMode), menu{window}, fpv{window}
 {
     menu.addButton(0.45*windowWidth, 0.45*windowHeight, 0.1*windowWidth, 0.1*windowHeight, "Play", changeToFPV);
     //cout << "Knappen er lagt til" << endl;
@@ -43,6 +54,9 @@ void GameHandler::render() {
     switch (gameMode) { //Checks which gameMode the game is in to decide which render function to call
         case gameModes::mainMenu:
             menu.render();
+            break;
+        case gameModes::fpv:
+            fpv.render();
             break;
     }
 }
