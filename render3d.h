@@ -17,6 +17,23 @@ struct TrigValues {
     double sXY;
 };
 
+struct WorldPointDouble { //a three-dimensional point (relative coordinates)
+    double x;
+    double y;
+    double z;
+    bool operator== (WorldPointDouble& rhs) {
+        return x == rhs.x && y == rhs.y && z == rhs.z;
+    }
+    WorldPointDouble operator+ (const WorldPointDouble& rhs){
+        return WorldPointDouble {x + rhs.x, y + rhs.y, z + rhs.z};
+    }
+    WorldPointDouble operator- (const WorldPointDouble& rhs){
+        return WorldPointDouble {x - rhs.x, y - rhs.y, z - rhs.z};
+    }
+
+    void printPoint();
+};
+
 struct WorldPointInt { //a three-dimensional point (absolute coordinates are always integers)
     int x;
     int y;
@@ -24,17 +41,14 @@ struct WorldPointInt { //a three-dimensional point (absolute coordinates are alw
     bool operator== (WorldPointInt rhs) {
         return x == rhs.x && y == rhs.y && z == rhs.z;
     }
+    bool operator< (WorldPointDouble& rhs) {
+        return double(x) < rhs.x && double(y) < rhs.y && double(z) < rhs.z;
+    }
+    bool operator> (WorldPointDouble& rhs) {
+        return double(x) > rhs.x && double(y) > rhs.y && double(z) > rhs.z;
+    }
 };
 
-struct WorldPointDouble { //a three-dimensional point (relative coordinates)
-    double x;
-    double y;
-    double z;
-    bool operator== (WorldPointDouble rhs) {
-        return x == rhs.x && y == rhs.y && z == rhs.z;
-    }
-    void printPoint();
-};
 
 struct Block
 {
@@ -51,6 +65,8 @@ struct World {
     void renderLine(AnimationWindow& window);
     void renderLines(AnimationWindow& window);
     void addBlock(int x, int y, int z);
+    void placeBlock (Player player);
+    void breakBlock (Player player);
 };
 
 struct Player {

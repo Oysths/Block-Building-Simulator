@@ -32,7 +32,7 @@ void MainMenu::addButton(double x, double y, double width, double height, string
 
 
 //FPV-class------------------------------------------------------------------
-FPV::FPV(AnimationWindow& window): window{window}
+FPV::FPV(AnimationWindow& window): window{window}, leftMouseDownLastFrame{false}
 {}
 
 void FPV::render() {
@@ -50,15 +50,38 @@ void FPV::render() {
 
 void FPV::getPlayerInput() {
     //cout << "Sjekker spillerinput" << endl;
+    
     bool wPressed = window.is_key_down(KeyboardKey::W);
     bool aPressed = window.is_key_down(KeyboardKey::A);
     bool sPressed = window.is_key_down(KeyboardKey::S);
     bool dPressed = window.is_key_down(KeyboardKey::D);
+    bool qPressed = window.is_key_down(KeyboardKey::Q);
+    bool ePressed = window.is_key_down(KeyboardKey::E);
     bool spacePressed = window.is_key_down(KeyboardKey::SPACE);
     bool leftShiftPressed = window.is_key_down(KeyboardKey::LEFT_SHIFT);
     bool escPressed = window.is_key_down(KeyboardKey::ESCAPE);
+    bool leftMousePressed = window.is_left_mouse_button_down();
+    bool rightMousePressed = window.is_right_mouse_button_down();
 
-    if (wPressed || aPressed || sPressed || dPressed || spacePressed || leftShiftPressed) {
+
+    bool leftMouseverdiHolder = leftMousePressed; //this ensures you can't hold the left mouse for more than one frame
+    if (leftMousePressed && leftMouseDownLastFrame) { 
+        leftMousePressed = false;
+    }
+    leftMouseDownLastFrame = leftMouseverdiHolder;
+
+    bool rightMouseverdiHolder = rightMousePressed; //same thing for the right side
+    if (rightMousePressed && rightMouseDownLastFrame) { 
+        rightMousePressed = false;
+    }
+    rightMouseDownLastFrame = rightMouseverdiHolder;
+
+
+    if (leftMousePressed && rightMousePressed) { //cant place and destroy a block at the same time
+        leftMousePressed = false;
+    }
+
+    if (wPressed || aPressed || sPressed || dPressed || spacePressed || leftShiftPressed || qPressed || ePressed || leftMousePressed|| rightMousePressed) {
         if (wPressed) {
             player.move("W");
         } if (aPressed) {
@@ -71,6 +94,16 @@ void FPV::getPlayerInput() {
             player.move("SPACE");
         } if (leftShiftPressed) {
             player.move("LSHIFT"); 
+        } if (qPressed) {
+            player.move("Q");
+        } if (ePressed) {
+            player.move("E");
+        } if (rightMousePressed) { //for meg blir leftmousebutton høyre og motsatt, litt cursed men
+            cout << "Place";
+            world.placeBlock(player);
+        } if (leftMousePressed) {
+            cout << "Break";
+            world.breakBlock(player);
         }
     }
     Point newmouse = window.get_mouse_coordinates();

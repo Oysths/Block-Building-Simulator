@@ -14,8 +14,8 @@ int main() {
     AnimationWindow window(50, 50, windowWidth, windowHeight, "3d-renderer");
     gameModes gameMode = gameModes::mainMenu;
     GameHandler screen = GameHandler(window, gameMode);
-    for (int i = -3; i < 3; i++) {
-        for (int j = -3; j < 3; j++) {
+    for (int i = 3; i < 6; i++) {
+        for (int j = 3; j < 6; j++) {
             for (int k = 10; k < 15; k++) {
                 screen.fpv.world.addBlock(i, j, k);
             }
@@ -26,8 +26,8 @@ int main() {
         screen.update(); 
         //cout << "Ferdig med å rendere" << endl;
         window.next_frame();
-        cout << screen.fpv.player.angles[0] << endl;
-        cout << screen.fpv.player.angles[1] << endl;
+        //cout << screen.fpv.player.angles[0] << endl;
+        //cout << screen.fpv.player.angles[1] << endl;
         //cout << "Neste frame" << endl;
     }
 

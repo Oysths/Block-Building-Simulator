@@ -24,6 +24,8 @@ class FPV {
         Player player;
         World world;
         Point mouse;
+        bool leftMouseDownLastFrame;
+        bool rightMouseDownLastFrame;
         FPV(AnimationWindow& window);
         void render();
         void getPlayerInput();

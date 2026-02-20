@@ -231,6 +231,10 @@ void Player::move(string button) {
         coords.y += 2.0/60.0;
     } else if (button == "LSHIFT") {
         coords.y -= 2.0/60.0;
+    } else if (button == "Q") {
+        angles[2] -= 0.02;
+    } else if (button == "E") {
+        angles[2] += 0.02;
     }
 }
 
@@ -248,4 +252,75 @@ void Player::getTrigValues() {
     s = sin(angles.at(2));
     trigValues.cXY = c;
     trigValues.sXY = s;
+}
+
+void World::placeBlock (Player player) {
+    //cout << "Prøver å plassere" << endl;
+    double placementRange = 3.0;
+    double deltaRange = 0.003;
+    double x = -cos(player.angles[1])*sin(player.angles[0]);
+    double z = cos(player.angles[0])*cos(player.angles[1]);
+    double y = sin(player.angles[1]); 
+    //cout << "x: " << x << ", y: " << y << ", z: " << z << endl;
+
+    WorldPointDouble p = player.coords; //this is the vector we will iterate
+    WorldPointDouble deltaRangeVector {x, y, z}; //direction vector to add to p
+
+    WorldPointInt p1; //first (x + 0, y + 0, z + 0) and last (x + 1, y +1 , z + 1) element of every block
+    WorldPointInt p2;
+
+    bool breakOutOfLoop = false;
+    for (double i = 0; i < placementRange; i += deltaRange) {
+        p = p + deltaRangeVector; //have defined addition for this type
+        
+        for (auto& b : blocks) { //iterates blocks to check the first iteration inside a block, when it has hit a block, it goes one iteration backwards and places a block there
+            p1 = referencePoints.at(b.pointIndexes.front());
+            p2 = referencePoints.at(b.pointIndexes.back());
+            if (p1 < p && p2 > p) {
+                //cout << "Fant en passende blokk" << endl;
+                p = p - deltaRangeVector; //go one back to get the coordinates of that block
+                breakOutOfLoop = true;
+                break;
+            }
+        }
+        if (breakOutOfLoop) {
+            addBlock(floor(p.x), floor(p.y), floor(p.z));
+            //cout << "Blokk plassert" << endl;
+            break;
+        }
+    }
+}
+
+void World::breakBlock(Player player) {
+    double breakRange = 3.0;
+    double deltaRange = 0.003;
+    double x = -cos(player.angles[1])*sin(player.angles[0]);
+    double z = cos(player.angles[0])*cos(player.angles[1]);
+    double y = sin(player.angles[1]); 
+    //cout << "x: " << x << ", y: " << y << ", z: " << z << endl;
+
+    WorldPointDouble p = player.coords; //this is the vector we will iterate
+    WorldPointDouble deltaRangeVector {x, y, z}; //direction vector to add to p
+
+    WorldPointInt p1; //first (x + 0, y + 0, z + 0) and last (x + 1, y +1 , z + 1) element of every block
+    WorldPointInt p2;
+
+    bool breakOutOfLoop = false;
+    for (double i = 0; i < breakRange; i += deltaRange) {
+        p = p + deltaRangeVector; //have defined addition for this type
+        
+        for (int j = 0; j < blocks.size(); j++) { //iterates blocks to check the first iteration inside a block, when it has hit a block, it goes one iteration backwards and places a block there
+            Block b = blocks.at(j);
+            p1 = referencePoints.at(b.pointIndexes.front());
+            p2 = referencePoints.at(b.pointIndexes.back());
+            if (p1 < p && p2 > p) {
+                blocks.erase(blocks.begin() + j);
+                breakOutOfLoop = true;
+                break;
+            }
+        }
+        if (breakOutOfLoop) {
+            break;
+        }
+    }
 }
