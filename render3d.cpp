@@ -41,7 +41,7 @@ array<double, 2> rollRotation(double x, double y, double& c, double& s) {
     return {newX, newY};
 }
 
-array<int, 8> getBlockIndexes(int x, int y, int z, World& world) {
+array<int, 8> getBlockIndexes(int x, int y, int z, World& world) { //this function may need improvement, I think this is the reason for the long waiting screen in the start
     //this function return the corresponding indexes for all 8 points in the block in the 
     //referencepoints-vector in world. It checks if theres any points in there already matching
     //the coordinates of the block, if not it creates a new point in world's points.
@@ -105,9 +105,9 @@ void World::transformCoords(Player player) {
         transformedPoints.push_back(placeHolderPoint);
     }
     
-    for (auto& p : transformedPoints) {
-        p.printPoint();
-    }
+    //for (auto& p : transformedPoints) {
+    //    p.printPoint();
+    //}
     //applyer rotasjonsmatriser etter offsettet
     //først XZ-rotatasjonsmatrisa (yaw)
     double c = cos(player.angles[0]); //calculates sin and cosine in advance because it is resource intensive to do so for every block
@@ -135,9 +135,11 @@ void World::transformCoords(Player player) {
         transformedPoints[i].x = transformedCoordsXY[0];
         transformedPoints[i].y = transformedCoordsXY[1];
     }
+
 }
 
 void World::renderPoints(AnimationWindow& window) {
+    cout << transformedPoints.size() << endl;
     double x;
     double y;
     double z;
@@ -148,14 +150,50 @@ void World::renderPoints(AnimationWindow& window) {
         x = p.x;
         y = p.y;
         z = p.z;
-        //konverterer de relative koordinatene til koordinater på skjermen ved hjelp av basic geometri   
-        const array<int, 2>& sCoords = screenCoords(x, y, z);
-        int sX = sCoords[0];
-        int sY = sCoords[1];
-        if (0 <= sX && sX <= windowWidth) {
+        if (z > fov) {
+            //konverterer de relative koordinatene til koordinater på skjermen ved hjelp av basic geometri   
+            const array<int, 2>& sCoords = screenCoords(x, y, z);
+            int sX = sCoords[0];
+            int sY = sCoords[1];
+            if (0 <= sX && sX <= windowWidth) {
                 if (0 <= sY && sY <= windowHeight) {
                     Point referencePoint {static_cast<int>(round(sX)), static_cast<int>(round(sY))};
                     window.draw_triangle(referencePoint, {referencePoint.x + radius, referencePoint.y + radius}, {referencePoint.x - radius, referencePoint.y + radius}, Color::dark_violet);
+                }
+            }
+        }
+
+    }
+}
+
+void World::renderLines(AnimationWindow& window) {
+    WorldPointDouble p1 {}; //p1 and p2 are the points which make up a line in a cube (two corners)
+    WorldPointDouble p2 {};
+    for (auto& b : blocks) {
+        for (const array pair : cubeEdgePairs) {
+            p1 = transformedPoints.at(b.pointIndexes.at(pair.at(0)));
+            p2 = transformedPoints.at(b.pointIndexes.at(pair.at(1)));
+
+            //p2.printPoint();
+            //p2.printPoint();
+
+            if (p1.z < 1e-4) { //screenCoords-funksjonen deler på z, men vet ikke hvor mye dette faktisk har å si
+                continue;
+            }
+            
+            const array<int, 2>& sCoords1 = screenCoords(p1.x, p1.y, p1.z);
+            int sX1 = sCoords1.at(0);
+            int sY1 = sCoords1.at(1);
+            Point lineStart = {sX1, sY1};
+            if (p2.z < 1e-4) { //screenCoords-funksjonen deler på z, men vet ikke hvor mye dette faktisk har å si
+                continue;
+            } 
+            const array<int, 2> sCoords2 = screenCoords(p2.x, p2.y, p2.z);
+            int sX2 = sCoords2.at(0);
+            int sY2 = sCoords2.at(1);
+            Point lineEnd = {sX2, sY2};
+            if (p1.z > fov || p2.z > fov) { 
+                window.draw_line(lineStart, lineEnd); 
             }
         }
     }

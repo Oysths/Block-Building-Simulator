@@ -39,6 +39,7 @@ void FPV::render() {
     window.setBackgroundColor(Color::white);
     world.transformCoords(player);
     world.renderPoints(window);
+    world.renderLines(window);
 }
 
 

@@ -39,6 +39,7 @@ struct World {
     vector<Block> blocks;
     void transformCoords(Player player);
     void renderPoints(AnimationWindow& window);
+    void renderLines(AnimationWindow& window);
     void addBlock(int x, int y, int z);
 };
 

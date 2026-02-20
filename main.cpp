@@ -14,14 +14,20 @@ int main() {
     AnimationWindow window(50, 50, windowWidth, windowHeight, "3d-renderer");
     gameModes gameMode = gameModes::mainMenu;
     GameHandler screen = GameHandler(window, gameMode);
-    screen.fpv.world.addBlock(0, 1, 6);
+    for (int i = -30; i < 30; i++) {
+        for (int j = -30; j < 30; j++) {
+            for (int k = 10; k < 15; k++) {
+                screen.fpv.world.addBlock(i, j, k);
+            }
+        }
+    }
 
 
     while (!window.should_close()) {
         screen.update(); 
         //cout << "Ferdig med å rendere" << endl;
         window.next_frame();
-        //cout << "Neste frame" << endl;
+        cout << "Neste frame" << endl;
     }
 
     return 0;
