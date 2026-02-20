@@ -36,10 +36,51 @@ FPV::FPV(AnimationWindow& window): window{window}
 {}
 
 void FPV::render() {
+    //cout << "renderer fpv" << endl;
     window.setBackgroundColor(Color::white);
+    //cout << "setter trig values" << endl;
+    player.getTrigValues();
+    //cout << "Transformerer" << endl;
     world.transformCoords(player);
-    world.renderPoints(window);
+    //cout << "renderer points" << endl;
+    //world.renderPoints(window);
+    //cout << "renderer Lines" << endl;
     world.renderLines(window);
+}
+
+void FPV::getPlayerInput() {
+    //cout << "Sjekker spillerinput" << endl;
+    bool wPressed = window.is_key_down(KeyboardKey::W);
+    bool aPressed = window.is_key_down(KeyboardKey::A);
+    bool sPressed = window.is_key_down(KeyboardKey::S);
+    bool dPressed = window.is_key_down(KeyboardKey::D);
+    bool spacePressed = window.is_key_down(KeyboardKey::SPACE);
+    bool leftShiftPressed = window.is_key_down(KeyboardKey::LEFT_SHIFT);
+    bool escPressed = window.is_key_down(KeyboardKey::ESCAPE);
+
+    if (wPressed || aPressed || sPressed || dPressed || spacePressed || leftShiftPressed) {
+        if (wPressed) {
+            player.move("W");
+        } if (aPressed) {
+            player.move("A");
+        } if (sPressed) {
+            player.move("S");
+        } if (dPressed) {
+            player.move("D");
+        } if (spacePressed) {
+            player.move("SPACE");
+        } if (leftShiftPressed) {
+            player.move("LSHIFT"); 
+        }
+    }
+    Point newmouse = window.get_mouse_coordinates();
+    double dXZ = newmouse.x - mouse.x;
+    double dYZ = newmouse.y - mouse.y;
+    mouse = newmouse;
+    player.angles.at(0) -= dXZ/130; //-= since when moving mouse pointer, you move the blocks away, not with it
+    player.angles.at(1) -= dYZ/500;
+
+    //cout << "Spillerinput sjekket" << endl;
 }
 
 
@@ -64,6 +105,11 @@ void GameHandler::render() {
 
 void GameHandler::update() {
     checkForGameModeChange();
+    if (gameMode == gameModes::fpv) {
+        fpv.getPlayerInput();
+        //cout << "Ber om player input" << endl;
+    }
+    //cout << "renderer" << endl;
     render();
 }
 
@@ -72,10 +118,11 @@ void GameHandler::checkForGameModeChange() {
         if (newestGameMode == gameModes::fpv && gameMode == gameModes::mainMenu) { //then the game is transitioning from menu to fpv
             for (auto& b : menu.buttons) { //går gjennom alle knappene i main menu og skjuler dem
                 b.setVisible(false);
-                cout << "byttet gamemode" << endl;
+                fpv.mouse = window.get_mouse_coordinates(); //So that the start reference mouse pointer value is the actual start value and not (0, 0)
             }
         }
         gameMode = newestGameMode;
+        //cout << "byttet gamemode" << endl;
     }
 }
 

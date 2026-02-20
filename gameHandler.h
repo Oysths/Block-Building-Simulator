@@ -8,7 +8,6 @@ enum class gameModes {mainMenu, editor, fpv};
 //extern gameModes gameMode;
 void changeToFPV(); //changes to the fpv-gamemode
 
-
 class MainMenu {
     AnimationWindow& window; //window object as reference
     //gameModes& gameMode;
@@ -24,8 +23,10 @@ class FPV {
         AnimationWindow& window;
         Player player;
         World world;
+        Point mouse;
         FPV(AnimationWindow& window);
         void render();
+        void getPlayerInput();
 };
 
 class GameHandler {
@@ -40,4 +41,3 @@ class GameHandler {
         void render(); //checks which gamemode is active and renders the appropriate gamemode - called by the update method
         void play();
 };
-

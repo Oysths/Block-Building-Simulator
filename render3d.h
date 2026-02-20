@@ -8,6 +8,15 @@ extern const int fov;
 extern const int windowWidth;
 extern const int windowHeight;
 
+struct TrigValues {
+    double cXZ;
+    double sXZ;
+    double cYZ;
+    double sYZ;
+    double cXY;
+    double sXY;
+};
+
 struct WorldPointInt { //a three-dimensional point (absolute coordinates are always integers)
     int x;
     int y;
@@ -39,6 +48,7 @@ struct World {
     vector<Block> blocks;
     void transformCoords(Player player);
     void renderPoints(AnimationWindow& window);
+    void renderLine(AnimationWindow& window);
     void renderLines(AnimationWindow& window);
     void addBlock(int x, int y, int z);
 };
@@ -46,6 +56,9 @@ struct World {
 struct Player {
     array<double, 3> angles {0, 0, 0}; //should be in following order: yaw, pitch, roll, same order as rotations matricies
     array<double, 3> deltaAngles {0, 0, 0}; //used to change angles
+    TrigValues trigValues;
     WorldPointDouble coords {0, 2, 0};
+    void move(string button);
+    void getTrigValues();
     //void move(const string& button);
 };

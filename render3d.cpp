@@ -110,28 +110,22 @@ void World::transformCoords(Player player) {
     //}
     //applyer rotasjonsmatriser etter offsettet
     //først XZ-rotatasjonsmatrisa (yaw)
-    double c = cos(player.angles[0]); //calculates sin and cosine in advance because it is resource intensive to do so for every block
-    double s = sin(player.angles[0]);
     for (int i = 0; i < transformedPoints.size(); ++i) {
-        const array<double, 2>& transformedCoordsXZ = yawRotation(transformedPoints[i].x, transformedPoints[i].z, c, s);
+        const array<double, 2>& transformedCoordsXZ = yawRotation(transformedPoints[i].x, transformedPoints[i].z, player.trigValues.cXZ, player.trigValues.sXZ);
         transformedPoints[i].x = transformedCoordsXZ[0];
         transformedPoints[i].z = transformedCoordsXZ[1];
     }
 
-    c = cos(player.angles[1]);
-    s = sin(player.angles[1]);
     //applyer så YZ-rotasjonsmatrisa (pitch)
     for (int i = 0; i < transformedPoints.size(); ++i) {
-        const array<double, 2>& transformedCoordsYZ = pitchRotation(transformedPoints[i].y, transformedPoints[i].z, c, s);
+        const array<double, 2>& transformedCoordsYZ = pitchRotation(transformedPoints[i].y, transformedPoints[i].z, player.trigValues.cYZ, player.trigValues.sYZ);
         transformedPoints[i].y = transformedCoordsYZ[0];
         transformedPoints[i].z = transformedCoordsYZ[1];
     }
 
-    c = cos(player.angles[2]);
-    s = sin(player.angles[2]);
     //finally applies roll (XY)
     for (int i = 0; i < transformedPoints.size(); ++i) {
-        const array<double, 2>& transformedCoordsXY = rollRotation(transformedPoints[i].x, transformedPoints[i].y, c, s);
+        const array<double, 2>& transformedCoordsXY = rollRotation(transformedPoints[i].x, transformedPoints[i].y, player.trigValues.cXY, player.trigValues.sXY);
         transformedPoints[i].x = transformedCoordsXY[0];
         transformedPoints[i].y = transformedCoordsXY[1];
     }
@@ -139,7 +133,7 @@ void World::transformCoords(Player player) {
 }
 
 void World::renderPoints(AnimationWindow& window) {
-    cout << transformedPoints.size() << endl;
+    //cout << transformedPoints.size() << endl;
     double x;
     double y;
     double z;
@@ -166,6 +160,10 @@ void World::renderPoints(AnimationWindow& window) {
     }
 }
 
+void World::renderLine(AnimationWindow& window) {
+
+}
+
 void World::renderLines(AnimationWindow& window) {
     WorldPointDouble p1 {}; //p1 and p2 are the points which make up a line in a cube (two corners)
     WorldPointDouble p2 {};
@@ -177,7 +175,7 @@ void World::renderLines(AnimationWindow& window) {
             //p2.printPoint();
             //p2.printPoint();
 
-            if (p1.z < 1e-4) { //screenCoords-funksjonen deler på z, men vet ikke hvor mye dette faktisk har å si
+            if (p1.z < 1e-2) { //screenCoords-funksjonen deler på z, men vet ikke hvor mye dette faktisk har å si
                 continue;
             }
             
@@ -185,7 +183,7 @@ void World::renderLines(AnimationWindow& window) {
             int sX1 = sCoords1.at(0);
             int sY1 = sCoords1.at(1);
             Point lineStart = {sX1, sY1};
-            if (p2.z < 1e-4) { //screenCoords-funksjonen deler på z, men vet ikke hvor mye dette faktisk har å si
+            if (p2.z < 1e-2) { //screenCoords-funksjonen deler på z, men vet ikke hvor mye dette faktisk har å si
                 continue;
             } 
             const array<int, 2> sCoords2 = screenCoords(p2.x, p2.y, p2.z);
@@ -193,7 +191,18 @@ void World::renderLines(AnimationWindow& window) {
             int sY2 = sCoords2.at(1);
             Point lineEnd = {sX2, sY2};
             if (p1.z > fov || p2.z > fov) { 
-                window.draw_line(lineStart, lineEnd); 
+                if (0 <= sX1 && sX1 <= windowWidth) {
+                    if (0 <= sY1 && sY1 <= windowHeight) {
+                        window.draw_line(lineStart, lineEnd); 
+                        continue;
+                    }
+                }
+                if (0 <= sX2 && sX2 <= windowWidth) {
+                    if (0 <= sY2 && sY2 <= windowHeight) {
+                        window.draw_line(lineStart, lineEnd);
+                    }
+                }
+
             }
         }
     }
@@ -201,4 +210,42 @@ void World::renderLines(AnimationWindow& window) {
 
 void World::addBlock(int x, int y, int z) {
     blocks.push_back(Block {x, y, z, *this}); //sender også objektet det ble kalt fra som reference
+}
+
+
+//Player-class--------------------------------------------------------------
+void Player::move(string button) {
+    if (button == "W") {
+        coords.z += (2.0/60.0)*trigValues.cXZ; //2 blocks i sekundet (60hz)
+        coords.x -= (2.0/60.0)*trigValues.sXZ;
+    } else if (button == "S") {
+        coords.z -= (2.0/60.0)*trigValues.cXZ; //2 blocks i sekundet (60hz)
+        coords.x += (2.0/60.0)*trigValues.sXZ;
+    } else if (button == "A") {
+        coords.x -= (2.0/60.0)*trigValues.cXZ; //2 blocks i sekundet (60hz)
+        coords.z -= (2.0/60.0)*trigValues.sXZ;
+    } else if (button == "D") {
+        coords.x += (2.0/60.0)*trigValues.cXZ; //2 blocks i sekundet (60hz)
+        coords.z += (2.0/60.0)*trigValues.sXZ;
+    } else if (button == "SPACE") {
+        coords.y += 2.0/60.0;
+    } else if (button == "LSHIFT") {
+        coords.y -= 2.0/60.0;
+    }
+}
+
+void Player::getTrigValues() {
+    //calculates sin and cosine values in advance because it is resource intensive to do so for every block
+    double c = cos(angles.at(0));
+    double s = sin(angles.at(0));
+    trigValues.cXZ = c;
+    trigValues.sXZ = s;
+    c = cos(angles.at(1));
+    s = sin(angles.at(1));
+    trigValues.cYZ = c;
+    trigValues.sYZ = s;
+    c = cos(angles.at(2));
+    s = sin(angles.at(2));
+    trigValues.cXY = c;
+    trigValues.sXY = s;
 }
