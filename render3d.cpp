@@ -14,6 +14,15 @@ static const array<array<int, 2>, 12> cubeEdgePairs = {{ //these are the index p
     {6,7}
 }};
 
+static const array<array<int, 4>, 6> cubeSurfaces = {{ //these are the index "pairs" (of four) for every surface om the cube
+    {0, 1, 2, 3},
+    {0, 1, 4, 5},
+    {0, 2, 4, 6},
+    {4, 5, 6, 7},
+    {1, 3, 5, 7},
+    {2, 3, 6, 7}
+}};
+
 array<int, 2> screenCoords(double x, double y, double z) {
     double screenX = frameScaling*(fov*x/z);
     double screenY = frameScaling*(fov*y/z);
@@ -86,9 +95,11 @@ array<int, 8> getBlockIndexes(int x, int y, int z, World& world) { //this functi
     return returnArray;
 }
 
+
 //Block-class-------------------------------------------------------
-Block::Block(int x, int y, int z, World& world): pointIndexes(getBlockIndexes(x, y, z, world))
+Block::Block(int x, int y, int z, World& world): pointIndexes(getBlockIndexes(x, y, z, world)), world{&world}
 {}
+
 
 //World-class-------------------------------------------------------
 void World::transformCoords(Player player) {
@@ -160,10 +171,6 @@ void World::renderPoints(AnimationWindow& window) {
     }
 }
 
-void World::renderLine(AnimationWindow& window) {
-
-}
-
 void World::renderLines(AnimationWindow& window) {
     WorldPointDouble p1 {}; //p1 and p2 are the points which make up a line in a cube (two corners)
     WorldPointDouble p2 {};
@@ -175,7 +182,7 @@ void World::renderLines(AnimationWindow& window) {
             //p2.printPoint();
             //p2.printPoint();
 
-            if (p1.z < 1e-2) { //screenCoords-funksjonen deler på z, men vet ikke hvor mye dette faktisk har å si
+            if (p1.z < 1e-2 || p2.z < 1e-2) { //screenCoords-funksjonen deler på z, men vet ikke hvor mye dette faktisk har å si
                 continue;
             }
             
@@ -183,9 +190,8 @@ void World::renderLines(AnimationWindow& window) {
             int sX1 = sCoords1.at(0);
             int sY1 = sCoords1.at(1);
             Point lineStart = {sX1, sY1};
-            if (p2.z < 1e-2) { //screenCoords-funksjonen deler på z, men vet ikke hvor mye dette faktisk har å si
-                continue;
-            } 
+            
+
             const array<int, 2> sCoords2 = screenCoords(p2.x, p2.y, p2.z);
             int sX2 = sCoords2.at(0);
             int sY2 = sCoords2.at(1);
@@ -208,50 +214,75 @@ void World::renderLines(AnimationWindow& window) {
     }
 }
 
-void World::addBlock(int x, int y, int z) {
-    blocks.push_back(Block {x, y, z, *this}); //sender også objektet det ble kalt fra som reference
-}
+void World::renderSurfaces(AnimationWindow& window) {
+    WorldPointDouble p1 {}; //p1 and p2 are the points which make up a line in a cube (two corners)
+    WorldPointDouble p2 {};
+    WorldPointDouble p3 {};
+    WorldPointDouble p4 {};
+    for (auto& b : blocks) {
+        for (const array surfaceIndexes : cubeSurfaces) {
+            p1 = transformedPoints.at(b.pointIndexes.at(surfaceIndexes.at(0)));
+            p2 = transformedPoints.at(b.pointIndexes.at(surfaceIndexes.at(1)));
+            p3 = transformedPoints.at(b.pointIndexes.at(surfaceIndexes.at(2)));
+            p4 = transformedPoints.at(b.pointIndexes.at(surfaceIndexes.at(3)));
 
 
-//Player-class--------------------------------------------------------------
-void Player::move(string button) {
-    if (button == "W") {
-        coords.z += (2.0/60.0)*trigValues.cXZ; //2 blocks i sekundet (60hz)
-        coords.x -= (2.0/60.0)*trigValues.sXZ;
-    } else if (button == "S") {
-        coords.z -= (2.0/60.0)*trigValues.cXZ; //2 blocks i sekundet (60hz)
-        coords.x += (2.0/60.0)*trigValues.sXZ;
-    } else if (button == "A") {
-        coords.x -= (2.0/60.0)*trigValues.cXZ; //2 blocks i sekundet (60hz)
-        coords.z -= (2.0/60.0)*trigValues.sXZ;
-    } else if (button == "D") {
-        coords.x += (2.0/60.0)*trigValues.cXZ; //2 blocks i sekundet (60hz)
-        coords.z += (2.0/60.0)*trigValues.sXZ;
-    } else if (button == "SPACE") {
-        coords.y += 2.0/60.0;
-    } else if (button == "LSHIFT") {
-        coords.y -= 2.0/60.0;
-    } else if (button == "Q") {
-        angles[2] -= 0.02;
-    } else if (button == "E") {
-        angles[2] += 0.02;
+            //p2.printPoint();
+            //p2.printPoint();
+
+            if (p1.z < 1e-2 || p2.z < 1e-2 || p3.z < 1e-2 || p4.z < 1e-2 ) { //screenCoords-funksjonen deler på z, men vet ikke hvor mye dette faktisk har å si
+                continue;
+            }
+            
+            const array<int, 2>& sCoords1 = screenCoords(p1.x, p1.y, p1.z);
+            int sX1 = sCoords1.at(0);
+            int sY1 = sCoords1.at(1);
+            Point corner1 = {sX1, sY1};
+
+
+            const array<int, 2> sCoords2 = screenCoords(p2.x, p2.y, p2.z);
+            int sX2 = sCoords2.at(0);
+            int sY2 = sCoords2.at(1);
+            Point corner2 = {sX2, sY2};
+
+
+            const array<int, 2> sCoords3 = screenCoords(p3.x, p3.y, p3.z);
+            int sX3 = sCoords3.at(0);
+            int sY3 = sCoords3.at(1);
+            Point corner3 = {sX3, sY3};
+
+            
+            const array<int, 2> sCoords4 = screenCoords(p4.x, p4.y, p4.z);
+            int sX4 = sCoords4.at(0);
+            int sY4 = sCoords4.at(1);
+            Point corner4 = {sX4, sY4};
+
+            //cout << "renderer surface" << endl;
+            window.draw_triangle(corner1, corner2, corner3, Color::green);
+            window.draw_triangle(corner2, corner3, corner4, Color::green); 
+
+
+            //if (p1.z > fov || p2.z > fov) { 
+            //    if (0 <= sX1 && sX1 <= windowWidth) {
+            //        if (0 <= sY1 && sY1 <= windowHeight) {
+            //            window.draw_triangle(corner1, corner2, corner2);
+            //            window.draw_triangle(corner2, corner3, corner4); 
+            //            continue;
+            //        }
+            //    }
+            //    if (0 <= sX2 && sX2 <= windowWidth) {
+            //        if (0 <= sY2 && sY2 <= windowHeight) {
+            //            window.draw_line(lineStart, lineEnd);
+            //        }
+            //    }
+//
+            //}
+        }
     }
 }
 
-void Player::getTrigValues() {
-    //calculates sin and cosine values in advance because it is resource intensive to do so for every block
-    double c = cos(angles.at(0));
-    double s = sin(angles.at(0));
-    trigValues.cXZ = c;
-    trigValues.sXZ = s;
-    c = cos(angles.at(1));
-    s = sin(angles.at(1));
-    trigValues.cYZ = c;
-    trigValues.sYZ = s;
-    c = cos(angles.at(2));
-    s = sin(angles.at(2));
-    trigValues.cXY = c;
-    trigValues.sXY = s;
+void World::addBlock(int x, int y, int z) {
+    blocks.push_back(Block {x, y, z, *this}); //sender også objektet det ble kalt fra som reference
 }
 
 void World::placeBlock (Player player) {
@@ -323,4 +354,53 @@ void World::breakBlock(Player player) {
             break;
         }
     }
+}
+
+void World::sortBlocks() {
+    sort(blocks); //from the algorithm-library std_lib_facilities provides. It automatically uses the overloaded less than operator we defined for the block class
+}
+
+vector<WorldPointDouble>& World::getTransformedPoints() {
+    return transformedPoints;
+}
+
+//Player-class--------------------------------------------------------------
+void Player::move(string button) {
+    if (button == "W") {
+        coords.z += (2.0/60.0)*trigValues.cXZ; //2 blocks i sekundet (60hz)
+        coords.x -= (2.0/60.0)*trigValues.sXZ;
+    } else if (button == "S") {
+        coords.z -= (2.0/60.0)*trigValues.cXZ; //2 blocks i sekundet (60hz)
+        coords.x += (2.0/60.0)*trigValues.sXZ;
+    } else if (button == "A") {
+        coords.x -= (2.0/60.0)*trigValues.cXZ; //2 blocks i sekundet (60hz)
+        coords.z -= (2.0/60.0)*trigValues.sXZ;
+    } else if (button == "D") {
+        coords.x += (2.0/60.0)*trigValues.cXZ; //2 blocks i sekundet (60hz)
+        coords.z += (2.0/60.0)*trigValues.sXZ;
+    } else if (button == "SPACE") {
+        coords.y += 2.0/60.0;
+    } else if (button == "LSHIFT") {
+        coords.y -= 2.0/60.0;
+    } else if (button == "Q") {
+        angles[2] -= 0.02;
+    } else if (button == "E") {
+        angles[2] += 0.02;
+    }
+}
+
+void Player::getTrigValues() {
+    //calculates sin and cosine values in advance because it is resource intensive to do so for every block
+    double c = cos(angles.at(0));
+    double s = sin(angles.at(0));
+    trigValues.cXZ = c;
+    trigValues.sXZ = s;
+    c = cos(angles.at(1));
+    s = sin(angles.at(1));
+    trigValues.cYZ = c;
+    trigValues.sYZ = s;
+    c = cos(angles.at(2));
+    s = sin(angles.at(2));
+    trigValues.cXY = c;
+    trigValues.sXY = s;
 }

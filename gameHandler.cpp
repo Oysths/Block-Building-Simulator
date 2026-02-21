@@ -36,16 +36,12 @@ FPV::FPV(AnimationWindow& window): window{window}, leftMouseDownLastFrame{false}
 {}
 
 void FPV::render() {
-    //cout << "renderer fpv" << endl;
     window.setBackgroundColor(Color::white);
-    //cout << "setter trig values" << endl;
     player.getTrigValues();
-    //cout << "Transformerer" << endl;
     world.transformCoords(player);
-    //cout << "renderer points" << endl;
-    //world.renderPoints(window);
-    //cout << "renderer Lines" << endl;
+    world.sortBlocks(); //makes the blocks render in the correct order
     world.renderLines(window);
+    world.renderSurfaces(window);
 }
 
 void FPV::getPlayerInput() {
@@ -99,10 +95,10 @@ void FPV::getPlayerInput() {
         } if (ePressed) {
             player.move("E");
         } if (rightMousePressed) { //for meg blir leftmousebutton høyre og motsatt, litt cursed men
-            cout << "Place";
+            //cout << "Place";
             world.placeBlock(player);
         } if (leftMousePressed) {
-            cout << "Break";
+            //cout << "Break";
             world.breakBlock(player);
         }
     }

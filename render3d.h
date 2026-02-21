@@ -1,8 +1,8 @@
 #include "std_lib_facilities.h"
 #include "AnimationWindow.h"
 
-class World;
-class Player; //forward declaring these so the compiler doesn't raise an error
+struct World;
+struct Player; //forward declaring these so the compiler doesn't raise an error
 extern const int frameScaling;
 extern const int fov;
 extern const int windowWidth;
@@ -50,10 +50,15 @@ struct WorldPointInt { //a three-dimensional point (absolute coordinates are alw
 };
 
 
+//struct Surface
+
 struct Block
 {
     array<int, 8> pointIndexes; //this is an array of 8 indexes, which are pointers to points in the transformedPoints in world class. The array is ordered, meaning the first index points to (0, 0, 0) relative to the blocks coordinate system (the first point). The second point will for example be (0, 0, 1) and the eight point will be (1, 1, 1). These eight points make up a block
+    World* world;
     Block(int x, int y, int z, World& world); //this is the constructor which will
+
+    bool operator<(const Block& rhs);
 };
 
 struct World {
@@ -62,12 +67,19 @@ struct World {
     vector<Block> blocks;
     void transformCoords(Player player);
     void renderPoints(AnimationWindow& window);
-    void renderLine(AnimationWindow& window);
     void renderLines(AnimationWindow& window);
+    void renderSurfaces(AnimationWindow& window);
     void addBlock(int x, int y, int z);
-    void placeBlock (Player player);
-    void breakBlock (Player player);
+    void placeBlock(Player player);
+    void breakBlock(Player player);
+    void sortBlocks();
+    vector<WorldPointDouble>& getTransformedPoints();
 };
+
+inline bool Block::operator<(const Block& rhs) {
+    vector<WorldPointDouble>& transformedPoints = world->getTransformedPoints();
+    return transformedPoints.at(pointIndexes.at(0)).z < transformedPoints.at(rhs.pointIndexes.at(0)).z; //since both blocks are in the transformed system, we only need to check a random z for both blocks and compare them (but they have to be the same index)
+}
 
 struct Player {
     array<double, 3> angles {0, 0, 0}; //should be in following order: yaw, pitch, roll, same order as rotations matricies
