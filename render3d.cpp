@@ -364,6 +364,74 @@ vector<WorldPointDouble>& World::getTransformedPoints() {
     return transformedPoints;
 }
 
+bool compareSurfacesDescending(const array<WorldPointDouble, 4>& a, const array<WorldPointDouble, 4>& b) {
+    double avgA = a[0].z + a[1].z + a[2].z + a[3].z;
+    avgA /= 4;
+    double avgB = b[0].z + b[1].z + b[2].z + b[3].z;
+    avgB /= 4;
+    return avgA > avgB;
+}
+
+void World::renderBlocks(AnimationWindow& window) {
+    vector<array<WorldPointDouble, 4>> surfaces; //list with every surface in it (the four points), the plan is to sort it and then render in the sorted order
+    WorldPointDouble p1 {}; //p1 and p2 are the points which make up a line in a cube (two corners)
+    WorldPointDouble p2 {};
+    WorldPointDouble p3 {};
+    WorldPointDouble p4 {};
+    for (int i = blocks.size()-1; i >= 0; i--) {
+        Block b = blocks.at(i);
+        surfaces = {};
+        for (const array surfaceIndexes : cubeSurfaces) {
+            p1 = transformedPoints.at(b.pointIndexes.at(surfaceIndexes.at(0)));
+            p2 = transformedPoints.at(b.pointIndexes.at(surfaceIndexes.at(1)));
+            p3 = transformedPoints.at(b.pointIndexes.at(surfaceIndexes.at(2)));
+            p4 = transformedPoints.at(b.pointIndexes.at(surfaceIndexes.at(3)));
+            surfaces.push_back({p1, p2, p3, p4});
+        }
+        sort(surfaces.begin(), surfaces.end(), compareSurfacesDescending);
+        for (int j = 3; j < 6; j++) { //a maximum of three surfaces could possibly be visible in three dimensions anyways, so this saves time
+            p1 = surfaces.at(j).at(0);
+            p2 = surfaces.at(j).at(1);
+            p3 = surfaces.at(j).at(2);
+            p4 = surfaces.at(j).at(3);
+
+
+            //if (p1.z < 1e-2 || p2.z < 1e-2 || p3.z < 1e-2 || p4.z < 1e-2 ) { //screenCoords-funksjonen deler på z, men vet ikke hvor mye dette faktisk har å si
+            //    continue;
+            //}
+            
+            const array<int, 2>& sCoords1 = screenCoords(p1.x, p1.y, p1.z);
+            int sX1 = sCoords1.at(0);
+            int sY1 = sCoords1.at(1);
+            Point corner1 = {sX1, sY1};
+
+            const array<int, 2> sCoords2 = screenCoords(p2.x, p2.y, p2.z);
+            int sX2 = sCoords2.at(0);
+            int sY2 = sCoords2.at(1);
+            Point corner2 = {sX2, sY2};
+
+            const array<int, 2> sCoords3 = screenCoords(p3.x, p3.y, p3.z);
+            int sX3 = sCoords3.at(0);
+            int sY3 = sCoords3.at(1);
+            Point corner3 = {sX3, sY3};
+            
+            const array<int, 2> sCoords4 = screenCoords(p4.x, p4.y, p4.z);
+            int sX4 = sCoords4.at(0);
+            int sY4 = sCoords4.at(1);
+            Point corner4 = {sX4, sY4};
+
+
+            window.draw_triangle(corner1, corner2, corner3, Color::green);
+            window.draw_triangle(corner2, corner3, corner4, Color::green); 
+            
+            window.draw_line(corner1, corner2);
+            window.draw_line(corner2, corner4);
+            window.draw_line(corner3, corner4);
+            window.draw_line(corner1, corner3);
+        }
+    }
+}
+
 //Player-class--------------------------------------------------------------
 void Player::move(string button) {
     if (button == "W") {

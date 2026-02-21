@@ -69,6 +69,7 @@ struct World {
     void renderPoints(AnimationWindow& window);
     void renderLines(AnimationWindow& window);
     void renderSurfaces(AnimationWindow& window);
+    void renderBlocks(AnimationWindow& window);
     void addBlock(int x, int y, int z);
     void placeBlock(Player player);
     void breakBlock(Player player);
@@ -78,6 +79,8 @@ struct World {
 
 inline bool Block::operator<(const Block& rhs) {
     vector<WorldPointDouble>& transformedPoints = world->getTransformedPoints();
+
+    //
     return transformedPoints.at(pointIndexes.at(0)).z < transformedPoints.at(rhs.pointIndexes.at(0)).z; //since both blocks are in the transformed system, we only need to check a random z for both blocks and compare them (but they have to be the same index)
 }
 

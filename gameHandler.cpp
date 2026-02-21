@@ -40,8 +40,9 @@ void FPV::render() {
     player.getTrigValues();
     world.transformCoords(player);
     world.sortBlocks(); //makes the blocks render in the correct order
-    world.renderLines(window);
-    world.renderSurfaces(window);
+    //world.renderLines(window);
+    //world.renderSurfaces(window);
+    world.renderBlocks(window);
 }
 
 void FPV::getPlayerInput() {
