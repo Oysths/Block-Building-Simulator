@@ -42,7 +42,9 @@ void FPV::render() {
     world.sortBlocks(); //makes the blocks render in the correct order
     //world.renderLines(window);
     //world.renderSurfaces(window);
+    Point midten {windowWidth/2, windowHeight/2};
     world.renderBlocks(window);
+    window.draw_circle(midten, 3, Color::black);
 }
 
 void FPV::getPlayerInput() {

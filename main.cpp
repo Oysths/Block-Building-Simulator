@@ -22,7 +22,7 @@ int main() {
    //     }
    // }
     screen.fpv.world.addBlock(2, 2, 5);
-    screen.fpv.world.addBlock(2, 2, 6);
+    //screen.fpv.world.addBlock(2, 2, 6);
 
     while (!window.should_close()) {
         screen.update(); 

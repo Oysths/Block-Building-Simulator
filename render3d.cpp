@@ -2,6 +2,7 @@
 
 void WorldPointDouble::printPoint() {
     cout << "x: " << x << ", y: " << y << ", z: " << z << endl;
+    cout << "z: " << z << endl;
 }
 
 static const array<array<int, 2>, 12> cubeEdgePairs = {{ //these are the index pairs for every cornerpair with distance = 1
@@ -288,7 +289,7 @@ void World::addBlock(int x, int y, int z) {
 void World::placeBlock (Player player) {
     //cout << "Prøver å plassere" << endl;
     double placementRange = 3.0;
-    double deltaRange = 0.003;
+    double deltaRange = 0.0001;
     double x = -cos(player.angles[1])*sin(player.angles[0]);
     double z = cos(player.angles[0])*cos(player.angles[1]);
     double y = sin(player.angles[1]); 
@@ -324,7 +325,7 @@ void World::placeBlock (Player player) {
 
 void World::breakBlock(Player player) {
     double breakRange = 3.0;
-    double deltaRange = 0.003;
+    double deltaRange = 0.0001;
     double x = -cos(player.angles[1])*sin(player.angles[0]);
     double z = cos(player.angles[0])*cos(player.angles[1]);
     double y = sin(player.angles[1]); 
@@ -364,12 +365,29 @@ vector<WorldPointDouble>& World::getTransformedPoints() {
     return transformedPoints;
 }
 
-bool compareSurfacesDescending(const array<WorldPointDouble, 4>& a, const array<WorldPointDouble, 4>& b) {
-    double avgA = a[0].z + a[1].z + a[2].z + a[3].z;
-    avgA /= 4;
-    double avgB = b[0].z + b[1].z + b[2].z + b[3].z;
-    avgB /= 4;
-    return avgA > avgB;
+bool compareSurfacesDescending(const array<WorldPointDouble, 4>& a, const array<WorldPointDouble, 4>& b) { //using painter algorithm since theres no z-buffer in the library: render objects with the largest z value first
+    //we don't divide by four to find average and we don't square root in return because the return value is a bool and it is mathematecally identical to not do so and it saves time
+    double avgAz = a[0].z + a[1].z + a[2].z + a[3].z;
+    double avgAx = a[0].x + a[1].x + a[2].x + a[3].x;
+    double avgAy = a[0].y + a[1].y + a[2].y + a[3].y;
+    double avgBz = b[0].z + b[1].z + b[2].z + b[3].z;
+    double avgBx = b[0].x + b[1].x + b[2].x + b[3].x;    
+    double avgBy = b[0].y + b[1].y + b[2].y + b[3].y;
+
+    return avgAz*avgAz + avgAx*avgAx + avgAy*avgAy > avgBz*avgBz + avgBx*avgBx + avgBy*avgBy; //return whether or not the euclidian distance is greater. No square root because it saves time and returns a boolean value anyways and has property f(x2) > f(x1) => x2 > x1. 
+
+    //double avgA = a[0].z + a[1].z + a[2].z + a[3].z; //tried painter's algorithm, but it falls short for real 3d rendering
+    //double avgB = b[0].z + b[1].z + b[2].z + b[3].z;
+    //return avgA > avgB;
+}
+
+void World::renderBlockSide(AnimationWindow& window, Point corner1, Point corner2, Point corner3, Point corner4) {
+    window.draw_triangle(corner1, corner2, corner3, Color::green); //draw two triangles to make the side of the cube which have four sides
+    window.draw_triangle(corner2, corner3, corner4, Color::green);
+    window.draw_line(corner1, corner2);
+    window.draw_line(corner2, corner4);
+    window.draw_line(corner3, corner4);
+    window.draw_line(corner1, corner3);
 }
 
 void World::renderBlocks(AnimationWindow& window) {
@@ -389,7 +407,7 @@ void World::renderBlocks(AnimationWindow& window) {
             surfaces.push_back({p1, p2, p3, p4});
         }
         sort(surfaces.begin(), surfaces.end(), compareSurfacesDescending);
-        for (int j = 3; j < 6; j++) { //a maximum of three surfaces could possibly be visible in three dimensions anyways, so this saves time
+        for (int j = 3; j < 6; j++) { //a maximum of three surfaces could possibly be visible in three dimensions per cube anyways, so starting at j = 3 saves time
             p1 = surfaces.at(j).at(0);
             p2 = surfaces.at(j).at(1);
             p3 = surfaces.at(j).at(2);
@@ -420,14 +438,32 @@ void World::renderBlocks(AnimationWindow& window) {
             int sY4 = sCoords4.at(1);
             Point corner4 = {sX4, sY4};
 
+            if (p1.z > fov || p2.z > fov || p3.z > fov || p4.z > fov) {
+                if (0 <= sX1 && sX1 <= windowWidth) {
+                    if (0 <= sY1 && sY1 <= windowHeight) {
+                        renderBlockSide(window, corner1, corner2, corner3, corner4);
+                        continue;
+                    }
+                }
+                if (0 <= sX2 && sX2 <= windowWidth) {
+                    if (0 <= sY2 && sY2 <= windowHeight) {
+                        renderBlockSide(window, corner1, corner2, corner3, corner4);
+                        continue;
+                    }
+                }
+                if (0 <= sX3 && sX3 <= windowWidth) {
+                    if (0 <= sY3 && sY3 <= windowHeight) {
+                        renderBlockSide(window, corner1, corner2, corner3, corner4);
+                        continue;
+                    }
+                }
+                if (0 <= sX4 && sX4 <= windowWidth) {
+                    if (0 <= sY4 && sY4 <= windowHeight) {
+                        renderBlockSide(window, corner1, corner2, corner3, corner4);
+                    }
+                }
 
-            window.draw_triangle(corner1, corner2, corner3, Color::green);
-            window.draw_triangle(corner2, corner3, corner4, Color::green); 
-            
-            window.draw_line(corner1, corner2);
-            window.draw_line(corner2, corner4);
-            window.draw_line(corner3, corner4);
-            window.draw_line(corner1, corner3);
+            }
         }
     }
 }

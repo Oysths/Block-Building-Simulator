@@ -69,6 +69,7 @@ struct World {
     void renderPoints(AnimationWindow& window);
     void renderLines(AnimationWindow& window);
     void renderSurfaces(AnimationWindow& window);
+    void renderBlockSide(AnimationWindow& window, Point corner1, Point corner2, Point corner3, Point corner4);
     void renderBlocks(AnimationWindow& window);
     void addBlock(int x, int y, int z);
     void placeBlock(Player player);
@@ -80,8 +81,22 @@ struct World {
 inline bool Block::operator<(const Block& rhs) {
     vector<WorldPointDouble>& transformedPoints = world->getTransformedPoints();
 
-    //
-    return transformedPoints.at(pointIndexes.at(0)).z < transformedPoints.at(rhs.pointIndexes.at(0)).z; //since both blocks are in the transformed system, we only need to check a random z for both blocks and compare them (but they have to be the same index)
+    WorldPointDouble p1 = transformedPoints.at(pointIndexes.at(0)); //takes the middle point of the blocks for reference, as any random point (even though they are the same index) leads to the possibility of the point in the cube furthest away being closer than that same point in the cube closer to us
+    WorldPointDouble p11 = transformedPoints.at(pointIndexes.at(7));
+
+    double p1x = (p11.x+p1.x);
+    double p1y = (p11.y+p1.y);
+    double p1z = (p11.z+p1.z);
+
+    WorldPointDouble p2 = transformedPoints.at(rhs.pointIndexes.at(0));
+    WorldPointDouble p22 = transformedPoints.at(rhs.pointIndexes.at(7));
+
+    double p2x = (p22.x+p2.x);
+    double p2y = (p22.y+p2.y);
+    double p2z = (p22.z+p2.z);
+
+    return p1z*p1z + p1x*p1x + p1y*p1y < p2z*p2z + p2x*p2x + p2y*p2y; //since both blocks are in the transformed system, we only need to check a random z for both blocks and compare them (but they have to be the same index)
+    //return p1.z < p2.z;
 }
 
 struct Player {
