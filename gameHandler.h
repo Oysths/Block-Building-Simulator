@@ -3,6 +3,7 @@
 #include "render3d.h"
 //#include "getData.h"
 
+
 enum class gameModes {mainMenu, editor, fpv};
 
 //extern gameModes gameMode;

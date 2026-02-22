@@ -1,5 +1,7 @@
 #include "render3d.h"
 
+auto starttidFrame = chrono::steady_clock::now();
+
 void WorldPointDouble::printPoint() {
     cout << "x: " << x << ", y: " << y << ", z: " << z << endl;
     cout << "z: " << z << endl;
@@ -288,11 +290,11 @@ void World::addBlock(int x, int y, int z) {
 
 void World::placeBlock (Player player) {
     //cout << "Prøver å plassere" << endl;
-    double placementRange = 3.0;
-    double deltaRange = 0.0001;
-    double x = -cos(player.angles[1])*sin(player.angles[0]);
-    double z = cos(player.angles[0])*cos(player.angles[1]);
-    double y = sin(player.angles[1]); 
+    double placementRange = 20.0;
+    double deltaRange = 0.01;
+    double x = -cos(player.angles[1])*sin(player.angles[0])*deltaRange;
+    double z = cos(player.angles[0])*cos(player.angles[1])*deltaRange;
+    double y = sin(player.angles[1])*deltaRange; 
     //cout << "x: " << x << ", y: " << y << ", z: " << z << endl;
 
     WorldPointDouble p = player.coords; //this is the vector we will iterate
@@ -324,11 +326,11 @@ void World::placeBlock (Player player) {
 }
 
 void World::breakBlock(Player player) {
-    double breakRange = 3.0;
-    double deltaRange = 0.0001;
-    double x = -cos(player.angles[1])*sin(player.angles[0]);
-    double z = cos(player.angles[0])*cos(player.angles[1]);
-    double y = sin(player.angles[1]); 
+    double breakRange = 20.0;
+    double deltaRange = 0.01;
+    double x = -cos(player.angles[1])*sin(player.angles[0])*deltaRange;
+    double z = cos(player.angles[0])*cos(player.angles[1])*deltaRange;
+    double y = sin(player.angles[1])*deltaRange; 
     //cout << "x: " << x << ", y: " << y << ", z: " << z << endl;
 
     WorldPointDouble p = player.coords; //this is the vector we will iterate
@@ -391,6 +393,9 @@ void World::renderBlockSide(AnimationWindow& window, Point corner1, Point corner
 }
 
 void World::renderBlocks(AnimationWindow& window) {
+    cout << "Skal rendere: " << blocks.size() << " blocks" << endl;
+    cout << "Skal rendere: " << referencePoints.size() << " points" << endl;
+    starttidFrame = chrono::steady_clock::now();
     vector<array<WorldPointDouble, 4>> surfaces; //list with every surface in it (the four points), the plan is to sort it and then render in the sorted order
     WorldPointDouble p1 {}; //p1 and p2 are the points which make up a line in a cube (two corners)
     WorldPointDouble p2 {};
@@ -400,18 +405,18 @@ void World::renderBlocks(AnimationWindow& window) {
         Block b = blocks.at(i);
         surfaces = {};
         for (const array surfaceIndexes : cubeSurfaces) {
-            p1 = transformedPoints.at(b.pointIndexes.at(surfaceIndexes.at(0)));
-            p2 = transformedPoints.at(b.pointIndexes.at(surfaceIndexes.at(1)));
-            p3 = transformedPoints.at(b.pointIndexes.at(surfaceIndexes.at(2)));
-            p4 = transformedPoints.at(b.pointIndexes.at(surfaceIndexes.at(3)));
+            p1 = transformedPoints[b.pointIndexes[surfaceIndexes[0]]];
+            p2 = transformedPoints[b.pointIndexes[surfaceIndexes[1]]];
+            p3 = transformedPoints[b.pointIndexes[surfaceIndexes[2]]];
+            p4 = transformedPoints[b.pointIndexes[surfaceIndexes[3]]];
             surfaces.push_back({p1, p2, p3, p4});
         }
         sort(surfaces.begin(), surfaces.end(), compareSurfacesDescending);
         for (int j = 3; j < 6; j++) { //a maximum of three surfaces could possibly be visible in three dimensions per cube anyways, so starting at j = 3 saves time
-            p1 = surfaces.at(j).at(0);
-            p2 = surfaces.at(j).at(1);
-            p3 = surfaces.at(j).at(2);
-            p4 = surfaces.at(j).at(3);
+            p1 = surfaces[j][0];
+            p2 = surfaces[j][1];
+            p3 = surfaces[j][2];
+            p4 = surfaces[j][3];
 
 
             //if (p1.z < 1e-2 || p2.z < 1e-2 || p3.z < 1e-2 || p4.z < 1e-2 ) { //screenCoords-funksjonen deler på z, men vet ikke hvor mye dette faktisk har å si
@@ -419,23 +424,23 @@ void World::renderBlocks(AnimationWindow& window) {
             //}
             
             const array<int, 2>& sCoords1 = screenCoords(p1.x, p1.y, p1.z);
-            int sX1 = sCoords1.at(0);
-            int sY1 = sCoords1.at(1);
+            int sX1 = sCoords1[0];
+            int sY1 = sCoords1[1];
             Point corner1 = {sX1, sY1};
 
             const array<int, 2> sCoords2 = screenCoords(p2.x, p2.y, p2.z);
-            int sX2 = sCoords2.at(0);
-            int sY2 = sCoords2.at(1);
+            int sX2 = sCoords2[0];
+            int sY2 = sCoords2[1];
             Point corner2 = {sX2, sY2};
 
             const array<int, 2> sCoords3 = screenCoords(p3.x, p3.y, p3.z);
-            int sX3 = sCoords3.at(0);
-            int sY3 = sCoords3.at(1);
+            int sX3 = sCoords3[0];
+            int sY3 = sCoords3[1];
             Point corner3 = {sX3, sY3};
             
             const array<int, 2> sCoords4 = screenCoords(p4.x, p4.y, p4.z);
-            int sX4 = sCoords4.at(0);
-            int sY4 = sCoords4.at(1);
+            int sX4 = sCoords4[0];
+            int sY4 = sCoords4[1];
             Point corner4 = {sX4, sY4};
 
             if (p1.z > fov || p2.z > fov || p3.z > fov || p4.z > fov) {
@@ -468,24 +473,30 @@ void World::renderBlocks(AnimationWindow& window) {
     }
 }
 
+
 //Player-class--------------------------------------------------------------
+
 void Player::move(string button) {
+    auto sluttid = std::chrono::steady_clock::now();
+    auto varighet = chrono::duration<double>(sluttid-starttidFrame).count();
+    varighet *= 500; //scaler varighet
+    //cout << varighet << endl;
     if (button == "W") {
-        coords.z += (2.0/60.0)*trigValues.cXZ; //2 blocks i sekundet (60hz)
-        coords.x -= (2.0/60.0)*trigValues.sXZ;
+        coords.z += (varighet/60.0)*trigValues.cXZ; //2 blocks i sekundet (60hz)
+        coords.x -= (varighet/60.0)*trigValues.sXZ;
     } else if (button == "S") {
-        coords.z -= (2.0/60.0)*trigValues.cXZ; //2 blocks i sekundet (60hz)
-        coords.x += (2.0/60.0)*trigValues.sXZ;
+        coords.z -= (varighet/60.0)*trigValues.cXZ; //2 blocks i sekundet (60hz)
+        coords.x += (varighet/60.0)*trigValues.sXZ;
     } else if (button == "A") {
-        coords.x -= (2.0/60.0)*trigValues.cXZ; //2 blocks i sekundet (60hz)
-        coords.z -= (2.0/60.0)*trigValues.sXZ;
+        coords.x -= (varighet/60.0)*trigValues.cXZ; //2 blocks i sekundet (60hz)
+        coords.z -= (varighet/60.0)*trigValues.sXZ;
     } else if (button == "D") {
-        coords.x += (2.0/60.0)*trigValues.cXZ; //2 blocks i sekundet (60hz)
-        coords.z += (2.0/60.0)*trigValues.sXZ;
+        coords.x += (varighet/60.0)*trigValues.cXZ; //2 blocks i sekundet (60hz)
+        coords.z += (varighet/60.0)*trigValues.sXZ;
     } else if (button == "SPACE") {
-        coords.y += 2.0/60.0;
+        coords.y += varighet/60.0;
     } else if (button == "LSHIFT") {
-        coords.y -= 2.0/60.0;
+        coords.y -= varighet/60.0;
     } else if (button == "Q") {
         angles[2] -= 0.02;
     } else if (button == "E") {
@@ -495,16 +506,16 @@ void Player::move(string button) {
 
 void Player::getTrigValues() {
     //calculates sin and cosine values in advance because it is resource intensive to do so for every block
-    double c = cos(angles.at(0));
-    double s = sin(angles.at(0));
+    double c = cos(angles[0]);
+    double s = sin(angles[0]);
     trigValues.cXZ = c;
     trigValues.sXZ = s;
-    c = cos(angles.at(1));
-    s = sin(angles.at(1));
+    c = cos(angles[1]);
+    s = sin(angles[1]);
     trigValues.cYZ = c;
     trigValues.sYZ = s;
-    c = cos(angles.at(2));
-    s = sin(angles.at(2));
+    c = cos(angles[2]);
+    s = sin(angles[2]);
     trigValues.cXY = c;
     trigValues.sXY = s;
 }
