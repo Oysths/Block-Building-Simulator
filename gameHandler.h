@@ -7,7 +7,7 @@
 enum class gameModes {mainMenu, editor, fpv};
 
 //extern gameModes gameMode;
-void changeToFPV(); //changes to the fpv-gamemode
+void changeToEditor(); //changes to the editor-gamemode
 
 class MainMenu {
     AnimationWindow& window; //window object as reference
@@ -19,25 +19,46 @@ class MainMenu {
         void addButton(double x, double y, double width, double height, string label, function<void ()>);
 };
 
-class FPV {
+class Editor {
     public:
         AnimationWindow& window;
         Player player;
         World world;
         Point mouse;
+        bool paused;
         bool leftMouseDownLastFrame;
         bool rightMouseDownLastFrame;
-        FPV(AnimationWindow& window);
-        void render();
-        void getPlayerInput();
+        Editor(AnimationWindow& window);
+        void render();    
+        void handlePlayerInput(PlayerInput& input);    
+};
+
+struct PlayerInput {
+    AnimationWindow& window;
+    bool esc;
+    bool w;
+    bool a;
+    bool s;
+    bool d;
+    bool q;
+    bool e;
+    bool m;
+    bool p;
+    bool space;
+    bool LShift;
+    bool LMouse;
+    bool RMouse;
+    PlayerInput(AnimationWindow& window);
+    void getPlayerInput();
 };
 
 class GameHandler {
     AnimationWindow& window; //this is the window that is being drawn to every frame
     gameModes& gameMode; //tracks the current gamemode
     MainMenu menu; //the mainmenu-object
+    PlayerInput playerInput;
     public:
-        FPV fpv;
+        Editor editor;
         GameHandler(AnimationWindow& window, gameModes& gameMode);
         void update(); //the most important method, should be called every frame from main. Checks for updates and then renders the appropriate gamemode
         void checkForGameModeChange(); //checks for changes in gamemode - called be the update method

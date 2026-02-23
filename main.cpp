@@ -16,7 +16,6 @@ auto sluttid = chrono::steady_clock::now();
 auto varighet = chrono::duration_cast<chrono::milliseconds>(sluttid-starttid);
 auto* startptr = &starttid;
 
-
 int main() {
     AnimationWindow window(50, 50, windowWidth, windowHeight, "3d-renderer");
     gameModes gameMode = gameModes::mainMenu;
@@ -24,7 +23,7 @@ int main() {
     for (int i = -30; i < 30; i++) {
         for (int j = 0; j < 1; j++) {
             for (int k = -30; k < 30; k++) {
-                screen.fpv.world.addBlock(i, j, k);
+                screen.editor.world.addBlock(i, j, k);
             }
         }
     }
@@ -47,7 +46,7 @@ int main() {
             i = 0;
             sluttid = chrono::steady_clock::now();
             varighet = chrono::duration_cast<chrono::milliseconds>(sluttid-starttid);
-            cout << "Tid mellom hvert sekstiende frame: " << varighet << endl;
+            //cout << "Tid mellom hvert sekstiende frame: " << varighet << endl;
         }
         
     }

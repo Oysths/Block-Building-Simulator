@@ -2,8 +2,8 @@
 
 gameModes newestGameMode = gameModes::mainMenu;
 
-void changeToFPV() {
-    newestGameMode = gameModes::fpv;
+void changeToEditor() {
+    newestGameMode = gameModes::editor;
 }
 
 //MainMenu-class--------------------------------------------------------------
@@ -23,7 +23,7 @@ void MainMenu::addButton(double x, double y, double width, double height, string
     Button b{p,
         static_cast<int>(width),
         static_cast<int>(height),
-        "Play"
+        label
         };
     b.setCallback(function);
     buttons.emplace_back(b);
@@ -31,11 +31,11 @@ void MainMenu::addButton(double x, double y, double width, double height, string
 }
 
 
-//FPV-class------------------------------------------------------------------
-FPV::FPV(AnimationWindow& window): window{window}, leftMouseDownLastFrame{false}
+//Editor-class------------------------------------------------------------------
+Editor::Editor(AnimationWindow& window): window{window}, leftMouseDownLastFrame{false}
 {}
 
-void FPV::render() {
+void Editor::render() {
     window.setBackgroundColor(Color::white);
     player.getTrigValues();
     world.transformCoords(player);
@@ -47,69 +47,53 @@ void FPV::render() {
     window.draw_circle(midten, 3, Color::black);
 }
 
-void FPV::getPlayerInput() {
-    //cout << "Sjekker spillerinput" << endl;
-    
-    bool wPressed = window.is_key_down(KeyboardKey::W);
-    bool aPressed = window.is_key_down(KeyboardKey::A);
-    bool sPressed = window.is_key_down(KeyboardKey::S);
-    bool dPressed = window.is_key_down(KeyboardKey::D);
-    bool qPressed = window.is_key_down(KeyboardKey::Q);
-    bool ePressed = window.is_key_down(KeyboardKey::E);
-    bool mPressed = window.is_key_down(KeyboardKey::M);
-    bool pPressed = window.is_key_down(KeyboardKey::P);
-    bool spacePressed = window.is_key_down(KeyboardKey::SPACE);
-    bool leftShiftPressed = window.is_key_down(KeyboardKey::LEFT_SHIFT);
-    bool escPressed = window.is_key_down(KeyboardKey::ESCAPE);
-    bool leftMousePressed = window.is_left_mouse_button_down();
-    bool rightMousePressed = window.is_right_mouse_button_down();
-
-
-    bool leftMouseverdiHolder = leftMousePressed; //this ensures you can't hold the left mouse for more than one frame
-    if (leftMousePressed && leftMouseDownLastFrame) { 
-        leftMousePressed = false;
+void Editor::handlePlayerInput(PlayerInput& input) {
+    bool leftMouseverdiHolder = input.LMouse; //this ensures you can't hold the left mouse for more than one frame
+    if (input.LMouse && leftMouseDownLastFrame) { 
+        input.LMouse = false;
     }
     leftMouseDownLastFrame = leftMouseverdiHolder;
 
-    bool rightMouseverdiHolder = rightMousePressed; //same thing for the right side
-    if (rightMousePressed && rightMouseDownLastFrame) { 
-        rightMousePressed = false;
+
+    bool rightMouseverdiHolder = input.RMouse; //same thing for the right side
+    if (input.RMouse && rightMouseDownLastFrame) { 
+        input.RMouse = false;
     }
     rightMouseDownLastFrame = rightMouseverdiHolder;
 
 
-    if (leftMousePressed && rightMousePressed) { //cant place and destroy a block at the same time
-        leftMousePressed = false;
+
+
+    if (input.LMouse && input.RMouse) { //cant place and destroy a block at the same time
+        input.LMouse = false;
     }
 
-    if (wPressed || aPressed || sPressed || dPressed || spacePressed || leftShiftPressed || qPressed || ePressed || leftMousePressed|| rightMousePressed || mPressed || pPressed) {
-        if (wPressed) {
-            player.move("W");
-        } if (aPressed) {
-            player.move("A");
-        } if (sPressed) {
-            player.move("S");
-        } if (dPressed) {
-            player.move("D");
-        } if (spacePressed) {
-            player.move("SPACE");
-        } if (leftShiftPressed) {
-            player.move("LSHIFT"); 
-        } if (qPressed) {
-            player.move("Q");
-        } if (ePressed) {
-            player.move("E");
-        } if (rightMousePressed) { //for meg blir leftmousebutton høyre og motsatt, litt cursed men
-            //cout << "Place";
-            world.placeBlock(player);
-        } if (leftMousePressed) {
-            //cout << "Break";
-            world.breakBlock(player);
-        } if (mPressed) {
-            fov -= 0.01;
-        } if (pPressed) {
-            fov += 0.01;
-        }
+    if (input.w) {
+        player.move("W");
+    } if (input.a) {
+        player.move("A");
+    } if (input.s) {
+        player.move("S");
+    } if (input.d) {
+        player.move("D");
+    } if (input.space) {
+        player.move("SPACE");
+    } if (input.LShift) {
+        player.move("LSHIFT"); 
+    } if (input.q) {
+        player.move("Q");
+    } if (input.e) {
+        player.move("E");
+    } if (input.RMouse) { //for meg blir leftmousebutton høyre og motsatt, litt cursed men
+        //cout << "Place";
+        world.placeBlock(player);
+    } if (input.LMouse) {
+        //cout << "Break";
+        world.breakBlock(player);
+    } if (input.m) {
+        fov -= 0.01;
+    } if (input.p) {
+        fov += 0.01;
     }
     Point newmouse = window.get_mouse_coordinates();
     double dXZ = newmouse.x - mouse.x;
@@ -118,15 +102,54 @@ void FPV::getPlayerInput() {
     player.angles.at(0) -= dXZ/130; //-= since when moving mouse pointer, you move the blocks away, not with it
     player.angles.at(1) -= dYZ/500;
 
+
     //cout << "Spillerinput sjekket" << endl;
+}
+
+
+//PlayerInput-class------------------------------------------------------------
+PlayerInput::PlayerInput(AnimationWindow& window): window{window}, esc{false}, w{false}, a{false}, s{false}, d{false}, q{false}, e{false}, m{false}, p{false}, space{false}, LShift{false}, LMouse{false}, RMouse{false}
+{}
+
+
+void PlayerInput::getPlayerInput() {
+    //cout << "Sjekker spillerinput" << endl;
+    
+    bool wPressed = window.is_key_down(KeyboardKey::W);
+    w = wPressed;
+    bool aPressed = window.is_key_down(KeyboardKey::A);
+    a = aPressed;
+    bool sPressed = window.is_key_down(KeyboardKey::S);
+    s = sPressed;
+    bool dPressed = window.is_key_down(KeyboardKey::D);
+    d = dPressed;
+    bool qPressed = window.is_key_down(KeyboardKey::Q);
+    q = qPressed;
+    bool ePressed = window.is_key_down(KeyboardKey::E);
+    e = ePressed;
+    bool mPressed = window.is_key_down(KeyboardKey::M);
+    m = mPressed;
+    bool pPressed = window.is_key_down(KeyboardKey::P);
+    p = pPressed;
+    bool spacePressed = window.is_key_down(KeyboardKey::SPACE);
+    space = spacePressed;
+    bool leftShiftPressed = window.is_key_down(KeyboardKey::LEFT_SHIFT);
+    LShift = leftShiftPressed;
+    bool escPressed = window.is_key_down(KeyboardKey::ESCAPE);
+    esc = escPressed;
+    bool leftMousePressed = window.is_left_mouse_button_down();
+    LMouse = leftMousePressed;
+    bool rightMousePressed = window.is_right_mouse_button_down();
+    RMouse = rightMousePressed;
 }
 
 
 //updateScreen-class----------------------------------------------------------
 
-GameHandler::GameHandler(AnimationWindow& window, gameModes& gameMode): window(window), gameMode(gameMode), menu{window}, fpv{window}
+GameHandler::GameHandler(AnimationWindow& window, gameModes& gameMode): window(window), gameMode(gameMode), menu{window}, editor{window}, playerInput{window}
 {
-    menu.addButton(0.45*windowWidth, 0.45*windowHeight, 0.1*windowWidth, 0.1*windowHeight, "Play", changeToFPV);
+    menu.addButton(0.44*windowWidth, 0.44*windowHeight, 0.12*windowWidth, 0.12*windowHeight, "Play", changeToEditor);
+    menu.addButton(0.45*windowWidth, 0.6*windowHeight, 0.1*windowWidth, 0.1*windowHeight, "Editor", changeToEditor);
     //cout << "Knappen er lagt til" << endl;
 }
 
@@ -135,16 +158,17 @@ void GameHandler::render() {
         case gameModes::mainMenu:
             menu.render();
             break;
-        case gameModes::fpv:
-            fpv.render();
+        case gameModes::editor:
+            editor.render();
             break;
     }
 }
 
 void GameHandler::update() {
+    playerInput.getPlayerInput();
     checkForGameModeChange();
-    if (gameMode == gameModes::fpv) {
-        fpv.getPlayerInput();
+    if (gameMode == gameModes::editor) {
+        editor.handlePlayerInput(playerInput);
         //cout << "Ber om player input" << endl;
     }
     //cout << "renderer" << endl;
@@ -153,10 +177,11 @@ void GameHandler::update() {
 
 void GameHandler::checkForGameModeChange() {
     if (newestGameMode != gameMode) {
-        if (newestGameMode == gameModes::fpv && gameMode == gameModes::mainMenu) { //then the game is transitioning from menu to fpv
+        if (newestGameMode == gameModes::editor && gameMode == gameModes::mainMenu) { //then the game is transitioning from menu to editor
             for (auto& b : menu.buttons) { //går gjennom alle knappene i main menu og skjuler dem
                 b.setVisible(false);
-                fpv.mouse = window.get_mouse_coordinates(); //So that the start reference mouse pointer value is the actual start value and not (0, 0)
+                editor.mouse = window.get_mouse_coordinates(); //So that the start reference mouse pointer value is the actual start value and not (0, 0)
+                editor.paused = false;
             }
         }
         gameMode = newestGameMode;
