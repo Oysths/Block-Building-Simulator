@@ -1,9 +1,14 @@
 //a drone simulator, made by Axel and Ludvig:)
 //with zero blocks and zero points, the time it takes to run 60 frames on Ludvig's PC is ~362ms
-
+#pragma once
+#define SDL_MAIN_HANDLED
 #include "std_lib_facilities.h"
 #include "gameHandler.h"
+#include "getInput.h"
+#include "joystickOverlay.h"
 #include <chrono> //library for testing code speed
+
+
 
 const int windowWidth = 1000;
 const int windowHeight = 650;
@@ -17,7 +22,9 @@ auto varighet = chrono::duration_cast<chrono::milliseconds>(sluttid-starttid);
 auto* startptr = &starttid;
 
 
+
 int main() {
+    SDL_SetMainReady();
     AnimationWindow window(50, 50, windowWidth, windowHeight, "3d-renderer");
     gameModes gameMode = gameModes::mainMenu;
     GameHandler screen = GameHandler(window, gameMode);
@@ -49,8 +56,10 @@ int main() {
             varighet = chrono::duration_cast<chrono::milliseconds>(sluttid-starttid);
             cout << "Tid mellom hvert sekstiende frame: " << varighet << endl;
         }
+        //getJoystickInput();
         
     }
-
+    SDL_JoystickClose(js);
+    SDL_Quit();
     return 0;
 }

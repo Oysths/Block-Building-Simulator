@@ -1,4 +1,6 @@
 #include "gameHandler.h"
+#include "joystickOverlay.h"
+#include "getInput.h"
 
 gameModes newestGameMode = gameModes::mainMenu;
 
@@ -130,6 +132,11 @@ GameHandler::GameHandler(AnimationWindow& window, gameModes& gameMode): window(w
     //cout << "Knappen er lagt til" << endl;
 }
 
+double roll = 0.5;
+double pitch = 0.5;
+double yaw = 0.5;
+double throttle = 0;
+
 void GameHandler::render() {
     switch (gameMode) { //Checks which gameMode the game is in to decide which render function to call
         case gameModes::mainMenu:
@@ -137,6 +144,8 @@ void GameHandler::render() {
             break;
         case gameModes::fpv:
             fpv.render();
+            getJoystickInput(yaw, pitch, roll, throttle, e);
+            showJoystickOverlay(yaw, pitch, roll, throttle, window, windowWidth, windowHeight);
             break;
     }
 }
