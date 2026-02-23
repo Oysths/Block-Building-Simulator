@@ -67,8 +67,8 @@ int main()
                 }
             }
         }
-        window.draw_rectangle(square1_point, squareWidth, squareWidth, Color::gray);
-        window.draw_rectangle(square2_point, squareWidth, squareWidth, Color::gray);
+        window.draw_rectangle(square1_point, squareWidth, squareWidth, Color::light_slate_gray);
+        window.draw_rectangle(square2_point, squareWidth, squareWidth, Color::light_slate_gray);
         circle1.x = (square1_point.x + yaw * squareWidth);
         circle1.y = (square1_point.y + (1 - throttle) * squareWidth);
         circle2.x = (square2_point.x + roll * squareWidth);
@@ -76,7 +76,7 @@ int main()
         window.draw_circle(circle1, 10, Color::black);
         window.draw_circle(circle2, 10, Color::black);
         window.next_frame();
-        SDL_Delay(5);
+        SDL_Delay(10);
     }
  
     SDL_JoystickClose(js);
