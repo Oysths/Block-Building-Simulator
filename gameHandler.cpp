@@ -56,6 +56,8 @@ void FPV::getPlayerInput() {
     bool dPressed = window.is_key_down(KeyboardKey::D);
     bool qPressed = window.is_key_down(KeyboardKey::Q);
     bool ePressed = window.is_key_down(KeyboardKey::E);
+    bool mPressed = window.is_key_down(KeyboardKey::M);
+    bool pPressed = window.is_key_down(KeyboardKey::P);
     bool spacePressed = window.is_key_down(KeyboardKey::SPACE);
     bool leftShiftPressed = window.is_key_down(KeyboardKey::LEFT_SHIFT);
     bool escPressed = window.is_key_down(KeyboardKey::ESCAPE);
@@ -80,7 +82,7 @@ void FPV::getPlayerInput() {
         leftMousePressed = false;
     }
 
-    if (wPressed || aPressed || sPressed || dPressed || spacePressed || leftShiftPressed || qPressed || ePressed || leftMousePressed|| rightMousePressed) {
+    if (wPressed || aPressed || sPressed || dPressed || spacePressed || leftShiftPressed || qPressed || ePressed || leftMousePressed|| rightMousePressed || mPressed || pPressed) {
         if (wPressed) {
             player.move("W");
         } if (aPressed) {
@@ -103,6 +105,10 @@ void FPV::getPlayerInput() {
         } if (leftMousePressed) {
             //cout << "Break";
             world.breakBlock(player);
+        } if (mPressed) {
+            fov -= 0.01;
+        } if (pPressed) {
+            fov += 0.01;
         }
     }
     Point newmouse = window.get_mouse_coordinates();

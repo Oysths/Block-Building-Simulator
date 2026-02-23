@@ -5,7 +5,7 @@
 struct World;
 struct Player; //forward declaring these so the compiler doesn't raise an error
 extern const int frameScaling;
-extern const int fov;
+extern double fov;
 extern const int windowWidth;
 extern const int windowHeight;
 //extern auto starttid;
@@ -70,9 +70,9 @@ struct World {
     vector<WorldPointDouble> transformedPoints; //these points are post transformation AND rotation (not only transformation)
     vector<Block> blocks;
     void transformCoords(Player player);
-    void renderPoints(AnimationWindow& window);
-    void renderLines(AnimationWindow& window);
-    void renderSurfaces(AnimationWindow& window);
+    void renderPoints(AnimationWindow& window); //inactive
+    void renderLines(AnimationWindow& window); //inactive
+    void renderSurfaces(AnimationWindow& window); //inactive
     void renderBlockSide(AnimationWindow& window, Point corner1, Point corner2, Point corner3, Point corner4);
     void renderBlocks(AnimationWindow& window);
     void addBlock(int x, int y, int z);

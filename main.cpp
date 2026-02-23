@@ -1,4 +1,5 @@
 //a drone simulator, made by Axel and Ludvig:)
+//with zero blocks and zero points, the time it takes to run 60 frames on Ludvig's PC is ~362ms
 
 #include "std_lib_facilities.h"
 #include "gameHandler.h"
@@ -6,7 +7,7 @@
 
 const int windowWidth = 1000;
 const int windowHeight = 650;
-const int fov = 1;
+double fov = 1;
 const int frameScaling = 1000;
 gameModes gameMode = gameModes::mainMenu; //This is global so we can change it fram gameHandler.cpp (by pressing buttons)
 
@@ -20,9 +21,9 @@ int main() {
     AnimationWindow window(50, 50, windowWidth, windowHeight, "3d-renderer");
     gameModes gameMode = gameModes::mainMenu;
     GameHandler screen = GameHandler(window, gameMode);
-    for (int i = -20; i < 20; i++) {
+    for (int i = -30; i < 30; i++) {
         for (int j = 0; j < 1; j++) {
-            for (int k = -10; k < 10; k++) {
+            for (int k = -30; k < 30; k++) {
                 screen.fpv.world.addBlock(i, j, k);
             }
         }

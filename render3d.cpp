@@ -393,8 +393,8 @@ void World::renderBlockSide(AnimationWindow& window, Point corner1, Point corner
 }
 
 void World::renderBlocks(AnimationWindow& window) {
-    cout << "Skal rendere: " << blocks.size() << " blocks" << endl;
-    cout << "Skal rendere: " << referencePoints.size() << " points" << endl;
+    //cout << "Skal rendere: " << blocks.size() << " blocks" << endl;
+    //cout << "Skal rendere: " << referencePoints.size() << " points" << endl;
     starttidFrame = chrono::steady_clock::now();
     vector<array<WorldPointDouble, 4>> surfaces; //list with every surface in it (the four points), the plan is to sort it and then render in the sorted order
     WorldPointDouble p1 {}; //p1 and p2 are the points which make up a line in a cube (two corners)
