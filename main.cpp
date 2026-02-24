@@ -25,6 +25,11 @@ auto* startptr = &starttid;
 
 int main() {
     SDL_SetMainReady();
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK);
+    if (!initJoystick())
+        return -1;
+    SDL_JoystickEventState(SDL_ENABLE);
+
     AnimationWindow window(50, 50, windowWidth, windowHeight, "3d-renderer");
     gameModes gameMode = gameModes::mainMenu;
     GameHandler screen = GameHandler(window, gameMode);
@@ -38,12 +43,17 @@ int main() {
     //screen.fpv.world.addBlock(2, 2, 5);
     //screen.fpv.world.addBlock(2, 2, 6);
     int i = 0;
+    SDL_Event e;
     while (!window.should_close()) {
         i += 1;
         if (i == 1) {
             starttid = chrono::steady_clock::now();
         }
-        
+
+        while (SDL_PollEvent(&e)) {
+            if (e.type == SDL_QUIT)
+                window.close();
+        }
         screen.update(); 
         //cout << "Ferdig med å rendere" << endl;
         window.next_frame();
@@ -59,7 +69,7 @@ int main() {
         //getJoystickInput();
         
     }
-    SDL_JoystickClose(js);
+    closeJoystick();
     SDL_Quit();
     return 0;
 }

@@ -1,6 +1,6 @@
 #include "gameHandler.h"
-#include "joystickOverlay.h"
-#include "getInput.h"
+
+
 
 gameModes newestGameMode = gameModes::mainMenu;
 
@@ -144,7 +144,7 @@ void GameHandler::render() {
             break;
         case gameModes::fpv:
             fpv.render();
-            getJoystickInput(yaw, pitch, roll, throttle, e);
+            updateJoystick(yaw, pitch, roll, throttle);
             showJoystickOverlay(yaw, pitch, roll, throttle, window, windowWidth, windowHeight);
             break;
     }

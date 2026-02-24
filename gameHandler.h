@@ -1,6 +1,10 @@
 #pragma once
 #include "std_lib_facilities.h"
 #include "render3d.h"
+#include "joystickOverlay.h"
+#include "getInput.h"
+#include "widgets/Button.h"
+#include <list>
 //#include "getData.h"
 
 
@@ -13,7 +17,7 @@ class MainMenu {
     AnimationWindow& window; //window object as reference
     //gameModes& gameMode;
     public:
-        list<Button> buttons {}; //We need a list to store buttons. This is because when we add a button to buttons, AnimationWindow saves a pointer to that address. When we add a new button, every object is moved, so the pointer is no longer valid. A list fixes this
+        std::list<Button> buttons {}; //We need a list to store buttons. This is because when we add a button to buttons, AnimationWindow saves a pointer to that address. When we add a new button, every object is moved, so the pointer is no longer valid. A list fixes this
         MainMenu(AnimationWindow& window);
         void render();
         void addButton(double x, double y, double width, double height, string label, function<void ()>);

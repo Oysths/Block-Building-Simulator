@@ -1,28 +1,50 @@
 #include "getInput.h"
-#include <SDL2/SDL.h>
-#include "std_lib_facilities.h"
 
-SDL_Joystick* js = SDL_JoystickOpen(0);
-SDL_Event e;
+static SDL_Joystick* joystick = nullptr;
 
-void getJoystickInputs(double& yaw, double& pitch, double& roll, double& throttle, SDL_Event e) {
-    while (SDL_PollEvent(&e)) {
-        if (e.type == SDL_JOYAXISMOTION) {
-            switch ((int)e.jaxis.axis) {
-                case 0:
-                    roll = (static_cast<double>(e.jaxis.value + 32768) / 65535);
-                    break;
-                case 1:
-                    pitch = (static_cast<double>(e.jaxis.value + 32768) / 65535);
-                    break;
-                case 2:
-                    throttle = (static_cast<double>(e.jaxis.value + 32768) / 65535);
-                    break;
-                case 3:
-                    yaw = (static_cast<double>(e.jaxis.value + 32768) / 65535);
-                    break;
-            }
-        }
+bool initJoystick() {
+
+    if (SDL_NumJoysticks() < 1) {
+        std::cout << "No joystick detected\n";
+        return false;
     }
-    SDL_Delay(10);
+
+    joystick = SDL_JoystickOpen(0);
+
+    if (!joystick) {
+        std::cout << "Failed to open joystick\n";
+        return false;
+    }
+
+    std::cout << "Joystick connected\n";
+    return true;
+}
+
+static double applyDeadzone(double value, double deadzone = 0.05) {
+    if (std::fabs(value) < deadzone)
+        return 0.0;
+    return value;
+}
+
+void updateJoystick(double& yaw, double& pitch, double& roll, double& throttle) {
+    // if (!joystick)
+    //     return;
+
+    SDL_JoystickUpdate();
+
+    roll  = (SDL_JoystickGetAxis(joystick, 0) + 32768.0) / 65535.0;
+    pitch = (SDL_JoystickGetAxis(joystick, 1) + 32768.0) / 65535.0;
+    yaw   = (SDL_JoystickGetAxis(joystick, 3) + 32768.0) / 65535.0;
+    throttle = (SDL_JoystickGetAxis(joystick, 2) + 32768.0) / 65535.0;
+
+    // roll  = applyDeadzone(roll);
+    // pitch = applyDeadzone(pitch);
+    // yaw   = applyDeadzone(yaw);
+}
+
+void closeJoystick() {
+    if (joystick) {
+        SDL_JoystickClose(joystick);
+        joystick = nullptr;
+    }
 }

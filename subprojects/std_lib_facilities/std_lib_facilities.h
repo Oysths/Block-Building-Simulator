@@ -52,8 +52,6 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <list> //Legger til liste i std_lib_facilities da jeg bruker det
-#include <memory>
 
 // C++23
 #if __cplusplus >= 202302L
