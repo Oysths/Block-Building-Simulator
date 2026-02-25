@@ -383,9 +383,11 @@ bool compareSurfacesDescending(const array<WorldPointDouble, 4>& a, const array<
     //return avgA > avgB;
 }
 
-void World::renderBlockSide(AnimationWindow& window, Point corner1, Point corner2, Point corner3, Point corner4) {
-    window.draw_triangle(corner1, corner2, corner3, Color::green); //draw two triangles to make the side of the cube which have four sides
-    window.draw_triangle(corner2, corner3, corner4, Color::green);
+void World::renderBlockSide(AnimationWindow& window, Point corner1, Point corner2, Point corner3, Point corner4, float z1, float z2, float z3, float z4) {
+    // Bytt v1 og v2
+    window.draw_triangle_zbuffer(corner1, corner3, corner2, Color::green);
+    window.draw_triangle_zbuffer(corner2, corner3, corner4, Color::green);
+    cout << "z1=" << z1 << " z2=" << z2 << " z3=" << z3 << " z4=" << z4 << endl;
     window.draw_line(corner1, corner2);
     window.draw_line(corner2, corner4);
     window.draw_line(corner3, corner4);
@@ -427,46 +429,50 @@ void World::renderBlocks(AnimationWindow& window) {
             int sX1 = sCoords1[0];
             int sY1 = sCoords1[1];
             Point corner1 = {sX1, sY1};
+            float z1 = p1.z;
 
             const array<int, 2> sCoords2 = screenCoords(p2.x, p2.y, p2.z);
             int sX2 = sCoords2[0];
             int sY2 = sCoords2[1];
             Point corner2 = {sX2, sY2};
+            float z2 = p2.z;
 
             const array<int, 2> sCoords3 = screenCoords(p3.x, p3.y, p3.z);
             int sX3 = sCoords3[0];
             int sY3 = sCoords3[1];
             Point corner3 = {sX3, sY3};
+            float z3 = p3.z;
             
             const array<int, 2> sCoords4 = screenCoords(p4.x, p4.y, p4.z);
             int sX4 = sCoords4[0];
             int sY4 = sCoords4[1];
             Point corner4 = {sX4, sY4};
+            float z4 = p4.z;
 
             if (p1.z > fov || p2.z > fov || p3.z > fov || p4.z > fov) {
-                if (0 <= sX1 && sX1 <= windowWidth) {
-                    if (0 <= sY1 && sY1 <= windowHeight) {
-                        renderBlockSide(window, corner1, corner2, corner3, corner4);
-                        continue;
-                    }
-                }
-                if (0 <= sX2 && sX2 <= windowWidth) {
-                    if (0 <= sY2 && sY2 <= windowHeight) {
-                        renderBlockSide(window, corner1, corner2, corner3, corner4);
-                        continue;
-                    }
-                }
-                if (0 <= sX3 && sX3 <= windowWidth) {
-                    if (0 <= sY3 && sY3 <= windowHeight) {
-                        renderBlockSide(window, corner1, corner2, corner3, corner4);
-                        continue;
-                    }
-                }
-                if (0 <= sX4 && sX4 <= windowWidth) {
-                    if (0 <= sY4 && sY4 <= windowHeight) {
-                        renderBlockSide(window, corner1, corner2, corner3, corner4);
-                    }
-                }
+                //if (0 <= sX1 && sX1 <= windowWidth) {
+                //    if (0 <= sY1 && sY1 <= windowHeight) {
+                    renderBlockSide(window, corner1, corner2, corner3, corner4, z1, z2, z3, z4);
+                //        continue;
+                //    }
+                //}
+                //if (0 <= sX2 && sX2 <= windowWidth) {
+                //    if (0 <= sY2 && sY2 <= windowHeight) {
+                //        renderBlockSide(window, corner1, corner2, corner3, corner4);
+                //        continue;
+                //    }
+                //}
+                //if (0 <= sX3 && sX3 <= windowWidth) {
+                //    if (0 <= sY3 && sY3 <= windowHeight) {
+                //        renderBlockSide(window, corner1, corner2, corner3, corner4);
+                //        continue;
+                //    }
+                //}
+                //if (0 <= sX4 && sX4 <= windowWidth) {
+                //    if (0 <= sY4 && sY4 <= windowHeight) {
+                //        renderBlockSide(window, corner1, corner2, corner3, corner4);
+                //    }
+                //}
 
             }
         }

@@ -283,6 +283,56 @@ void TDT4102::AnimationWindow::draw_triangle(TDT4102::Point vertex0, TDT4102::Po
     SDL_RenderGeometry(rendererHandle, nullptr, vertexArray.data(), 3, indexArray.data(), 3);
 }
 
+int wWidth = 1000;
+int wHeight = 650;
+
+
+
+//std::vector<float> zbuffer(wWidth * wHeight, std::numeric_limits<float>::infinity());
+
+void TDT4102::AnimationWindow::draw_triangle_zbuffer(
+    TDT4102::Point v0, TDT4102::Point v1, TDT4102::Point v2,
+    float z0, float z1, float z2,
+    TDT4102::Color color, std::vector<float>& zbuffer,
+    int screenWidth, int screenHeight)
+{
+    int minX = std::max(0, std::min({v0.x, v1.x, v2.x}));
+    int maxX = std::min(screenWidth - 1, std::max({v0.x, v1.x, v2.x}));
+    int minY = std::max(0, std::min({v0.y, v1.y, v2.y}));
+    int maxY = std::min(screenHeight - 1, std::max({v0.y, v1.y, v2.y}));
+
+    std::cout << minX << " " << maxX << " " << minY << " " <<  maxY << std::endl;
+
+    float area = (float)((v1.x - v0.x) * (v2.y - v0.y) - (v2.x - v0.x) * (v1.y - v0.y));
+    std::cout << "area: " << area << std::endl;
+    if (std::abs(area) < 1e-5f) return;
+
+    for (int y = minY; y <= maxY; y++) {
+        for (int x = minX; x <= maxX; x++) {
+            float w0 = ((v1.x - v2.x) * (y - v2.y) - (v1.y - v2.y) * (x - v2.x)) / area;
+            float w1 = ((v2.x - v0.x) * (y - v0.y) - (v2.y - v0.y) * (x - v0.x)) / area;
+            float w2 = 1.0f - w0 - w1;
+
+            if (x == minX && y == minY) {
+
+            }
+
+            if (w0 > 1e-5f || w1 > 1e-5f || w2 > 1e-5f) continue;
+
+            float z = w0 * z0 + w1 * z1 + w2 * z2;
+
+            int idx = y * screenWidth + x;
+            if (z < zbuffer[idx]) {
+                zbuffer[idx] = z;
+                SDL_SetRenderDrawColor(rendererHandle,
+                    color.redChannel, color.greenChannel,
+                    color.blueChannel, color.alphaChannel);
+                SDL_RenderDrawPoint(rendererHandle, x, y);
+            }
+        }
+    }
+}
+
 void TDT4102::AnimationWindow::draw_quad(TDT4102::Point vertex0, TDT4102::Point vertex1, TDT4102::Point vertex2,
                                          TDT4102::Point vertex3, TDT4102::Color color) {
     SDL_Vertex v0{{float(vertex0.x), float(vertex0.y)}, {color.redChannel, color.greenChannel, color.blueChannel, color.alphaChannel}, {0, 0}};

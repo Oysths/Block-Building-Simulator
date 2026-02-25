@@ -20,6 +20,8 @@
 #include "MessageType.h"
 #include "widgets/Button.h" //Denne var somehow ikke inkludert allerede, så måtte inkludere den manuelt
 
+extern std::vector<float> zbuffer;
+
 namespace TDT4102 {
 // Forward declaration of Widget class
 class Widget;
@@ -99,6 +101,8 @@ class AnimationWindow {
     // Pauses execution for a specified amount of time
     static void wait_for(double timeSeconds);
 
+    
+
     // These functions should hopefully be rather self-explanatory.
     // They allow you to draw a variety of different shapes.
     void draw_circle(TDT4102::Point centre, int radius, TDT4102::Color color = TDT4102::Color::dark_blue, TDT4102::Color borderColor = TDT4102::Color::transparent);
@@ -107,6 +111,7 @@ class AnimationWindow {
     void draw_text(TDT4102::Point bottomLeftPoint, std::string textToShow, TDT4102::Color color = TDT4102::Color::black, unsigned int fontSize = 20, TDT4102::Font font = TDT4102::Font::arial);
     void draw_line(TDT4102::Point start, TDT4102::Point end, TDT4102::Color color = TDT4102::Color::black);
     void draw_triangle(TDT4102::Point vertex0, TDT4102::Point vertex1, TDT4102::Point vertex2, TDT4102::Color color = TDT4102::Color::yellow);
+    void draw_triangle_zbuffer(TDT4102::Point v0, TDT4102::Point v1, TDT4102::Point v2, float z0, float z1, float z2, TDT4102::Color color, std::vector<float>& zbuffer, int screenWidth = 1000, int screenHeight = 650);
     void draw_quad(TDT4102::Point vertex0, TDT4102::Point vertex1, TDT4102::Point vertex2, TDT4102::Point vertex3, TDT4102::Color color = TDT4102::Color::cyan);
     void draw_arc(TDT4102::Point center, int width, int height, int start_degree, int end_degree, TDT4102::Color color = TDT4102::Color::black);
 

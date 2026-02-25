@@ -142,6 +142,7 @@ void GameHandler::render() {
 }
 
 void GameHandler::update() {
+    fill(zbuffer.begin(), zbuffer.end(), std::numeric_limits<float>::infinity());
     checkForGameModeChange();
     if (gameMode == gameModes::fpv) {
         fpv.getPlayerInput();

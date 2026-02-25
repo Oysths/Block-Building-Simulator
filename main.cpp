@@ -15,15 +15,16 @@ auto starttid = chrono::steady_clock::now();
 auto sluttid = chrono::steady_clock::now();
 auto varighet = chrono::duration_cast<chrono::milliseconds>(sluttid-starttid);
 auto* startptr = &starttid;
+vector<float> zbuffer(windowWidth * windowHeight, std::numeric_limits<float>::infinity());
 
 
 int main() {
     AnimationWindow window(50, 50, windowWidth, windowHeight, "3d-renderer");
     gameModes gameMode = gameModes::mainMenu;
     GameHandler screen = GameHandler(window, gameMode);
-    for (int i = -30; i < 30; i++) {
+    for (int i = -3; i < 3; i++) {
         for (int j = 0; j < 1; j++) {
-            for (int k = -30; k < 30; k++) {
+            for (int k = 4; k < 5; k++) {
                 screen.fpv.world.addBlock(i, j, k);
             }
         }

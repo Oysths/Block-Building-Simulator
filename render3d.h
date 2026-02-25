@@ -8,6 +8,7 @@ extern const int frameScaling;
 extern double fov;
 extern const int windowWidth;
 extern const int windowHeight;
+extern vector<float> zbuffer;
 //extern auto starttid;
 //extern auto sluttid;
 //extern auto varighet;
@@ -73,7 +74,7 @@ struct World {
     void renderPoints(AnimationWindow& window); //inactive
     void renderLines(AnimationWindow& window); //inactive
     void renderSurfaces(AnimationWindow& window); //inactive
-    void renderBlockSide(AnimationWindow& window, Point corner1, Point corner2, Point corner3, Point corner4);
+    void renderBlockSide(AnimationWindow& window, Point corner1, Point corner2, Point corner3, Point corner4, float z1, float z2, float z3, float z4);
     void renderBlocks(AnimationWindow& window);
     void addBlock(int x, int y, int z);
     void placeBlock(Player player);
