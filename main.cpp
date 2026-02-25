@@ -20,13 +20,12 @@ int main() {
     AnimationWindow window(50, 50, windowWidth, windowHeight, "3d-renderer");
     gameModes gameMode = gameModes::mainMenu;
     GameHandler screen = GameHandler(window, gameMode);
-    for (int i = -30; i < 30; i++) {
-        for (int j = 0; j < 1; j++) {
-            for (int k = -30; k < 30; k++) {
-                screen.editor.world.addBlock(i, j, k);
-            }
-        }
-    }
+    screen.editor.world.addBlock(2, 1, 3);
+    screen.editor.world.addBlock(3, 1, 0, 1, 1, 5);
+    screen.editor.world.addBlock(4, 1, 4, 5, 1, 1);
+    screen.editor.world.addBlock(5, 1, 5);
+    screen.editor.world.addBlock(5, 1, 3);
+    screen.editor.world.addBlock(7, 1, 3);
     //screen.fpv.world.addBlock(2, 2, 5);
     //screen.fpv.world.addBlock(2, 2, 6);
     int i = 0;

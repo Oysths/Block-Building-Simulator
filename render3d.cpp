@@ -53,7 +53,7 @@ array<double, 2> rollRotation(double x, double y, double& c, double& s) {
     return {newX, newY};
 }
 
-array<int, 8> getBlockIndexes(int x, int y, int z, World& world) { //this function may need improvement, I think this is the reason for the long waiting screen in the start
+array<int, 8> getBlockIndexes(int x, int y, int z, int width, int height, int depth, World& world) { //this function may need improvement, I think this is the reason for the long waiting screen in the start
     //this function return the corresponding indexes for all 8 points in the block in the 
     //referencepoints-vector in world. It checks if theres any points in there already matching
     //the coordinates of the block, if not it creates a new point in world's points.
@@ -71,7 +71,7 @@ array<int, 8> getBlockIndexes(int x, int y, int z, World& world) { //this functi
             for (int k = 0; k < 2; k++) {
                 iteration += 1;
 
-                WorldPointInt p0 {x + i, y + j, z + k};               //this is the point we're looking for, if not in world's referencepoints, it should be added to worldreferencepoints
+                WorldPointInt p0 {x + i*width, y + j*height, z + k*depth};               //this is the point we're looking for, if not in world's referencepoints, it should be added to worldreferencepoints
                 found = false;
                 for (int l = 0; l < worldPointSize; l++) {         //iterates through every worldpoint in world to see if it exists already
                     WorldPointInt& p = world.referencePoints.at(l);
@@ -100,7 +100,7 @@ array<int, 8> getBlockIndexes(int x, int y, int z, World& world) { //this functi
 
 
 //Block-class-------------------------------------------------------
-Block::Block(int x, int y, int z, World& world): pointIndexes(getBlockIndexes(x, y, z, world)), world{&world}
+Block::Block(int x, int y, int z, int width, int height, int depth, World& world): pointIndexes(getBlockIndexes(x, y, z, width, height, depth, world)), world{&world}
 {}
 
 
@@ -284,11 +284,15 @@ void World::renderSurfaces(AnimationWindow& window) {
     }
 }
 
-void World::addBlock(int x, int y, int z) {
-    blocks.push_back(Block {x, y, z, *this}); //sender også objektet det ble kalt fra som reference
+void World::addBlock(int x, int y, int z, int width, int height, int depth) {
+    blocks.push_back(Block {x, y, z, width, height, depth, *this}); //sender også objektet det ble kalt fra som reference
+    int newIdx = blocks.size()-1;
+    blocksIndexesZsorted.push_back(newIdx);
+    blocksIndexesXsorted.push_back(newIdx);
+    blocksIndexesYsorted.push_back(newIdx);
 }
 
-void World::placeBlock (Player player) {
+void World::placeBlock (Player& player) {
     //cout << "Prøver å plassere" << endl;
     double placementRange = 20.0;
     double deltaRange = 0.01;
@@ -325,7 +329,7 @@ void World::placeBlock (Player player) {
     }
 }
 
-void World::breakBlock(Player player) {
+void World::breakBlock(Player& player) {
     double breakRange = 20.0;
     double deltaRange = 0.01;
     double x = -cos(player.angles[1])*sin(player.angles[0])*deltaRange;
@@ -361,6 +365,38 @@ void World::breakBlock(Player player) {
 
 void World::sortBlocks() {
     sort(blocks); //from the algorithm-library std_lib_facilities provides. It automatically uses the overloaded less than operator we defined for the block class
+}
+
+void World::sortBlockGroups(Player& player) {
+    sort(blocksIndexesZsorted.begin(), blocksIndexesZsorted.end(), [&](int a, int b) { //sorts blocks indexes by highest z value per block (high to low)
+        vector<int> az {};
+        vector<int> bz {};
+        az.push_back(abs(referencePoints.at(blocks.at(a).pointIndexes.at(0)).z - player.coords.z));
+        az.push_back(abs(referencePoints.at(blocks.at(a).pointIndexes.at(7)).z - player.coords.z));
+        bz.push_back(abs(referencePoints.at(blocks.at(b).pointIndexes.at(0)).z - player.coords.z));
+        bz.push_back(abs(referencePoints.at(blocks.at(b).pointIndexes.at(7)).z - player.coords.z));
+        return max({az[0], az[1]}) < max({bz[0], bz[1]});
+    });
+
+    sort(blocksIndexesXsorted.begin(), blocksIndexesXsorted.end(), [&](int a, int b) { //sorts blocks indexes by highest x value per block (high to low)
+        vector<int> ax {};
+        vector<int> bx {};
+        ax.push_back(abs(referencePoints.at(blocks.at(a).pointIndexes.at(0)).x - player.coords.x));
+        ax.push_back(abs(referencePoints.at(blocks.at(a).pointIndexes.at(7)).x - player.coords.x));
+        bx.push_back(abs(referencePoints.at(blocks.at(b).pointIndexes.at(0)).x - player.coords.x));
+        bx.push_back(abs(referencePoints.at(blocks.at(b).pointIndexes.at(7)).x - player.coords.x));
+        return max({ax[0], ax[1]}) < max({bx[0], bx[1]});
+    });
+
+    sort(blocksIndexesZsorted.begin(), blocksIndexesZsorted.end(), [&](int a, int b) { //sorts blocks indexes by highest x value per block (high to low)
+        vector<int> ay {};
+        vector<int> by {};
+        ay.push_back(abs(referencePoints.at(blocks.at(a).pointIndexes.at(0)).y - player.coords.y));
+        ay.push_back(abs(referencePoints.at(blocks.at(a).pointIndexes.at(7)).y - player.coords.y));
+        by.push_back(abs(referencePoints.at(blocks.at(b).pointIndexes.at(0)).y - player.coords.y));
+        by.push_back(abs(referencePoints.at(blocks.at(b).pointIndexes.at(7)).y - player.coords.y));
+        return max({ay[0], ay[1]}) < max({by[0], by[1]});
+    });
 }
 
 vector<WorldPointDouble>& World::getTransformedPoints() {
@@ -471,6 +507,10 @@ void World::renderBlocks(AnimationWindow& window) {
             }
         }
     }
+}
+
+void World::renderGroups(AnimationWindow& window) {
+
 }
 
 

@@ -39,11 +39,16 @@ void Editor::render() {
     window.setBackgroundColor(Color::white);
     player.getTrigValues();
     world.transformCoords(player);
-    world.sortBlocks(); //makes the blocks render in the correct order
+
+    //world.sortBlocks(); //makes the blocks render in the correct order
+
+    world.sortBlockGroups(player); //sorts the blocks in correct order
+
     //world.renderLines(window);
     //world.renderSurfaces(window);
+
     Point midten {windowWidth/2, windowHeight/2};
-    world.renderBlocks(window);
+    world.renderGroups(window);
     window.draw_circle(midten, 3, Color::black);
 }
 
@@ -144,7 +149,7 @@ void PlayerInput::getPlayerInput() {
 }
 
 
-//updateScreen-class----------------------------------------------------------
+//Gamehandler-class----------------------------------------------------------
 
 GameHandler::GameHandler(AnimationWindow& window, gameModes& gameMode): window(window), gameMode(gameMode), menu{window}, editor{window}, playerInput{window}
 {
