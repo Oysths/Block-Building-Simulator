@@ -1,6 +1,7 @@
 #pragma once
 #include "std_lib_facilities.h"
 #include "render3d.h"
+#include <list>
 //#include "getData.h"
 
 
@@ -17,20 +18,6 @@ class MainMenu {
         MainMenu(AnimationWindow& window);
         void render();
         void addButton(double x, double y, double width, double height, string label, function<void ()>);
-};
-
-class Editor {
-    public:
-        AnimationWindow& window;
-        Player player;
-        World world;
-        Point mouse;
-        bool paused;
-        bool leftMouseDownLastFrame;
-        bool rightMouseDownLastFrame;
-        Editor(AnimationWindow& window);
-        void render();    
-        void handlePlayerInput(PlayerInput& input);    
 };
 
 struct PlayerInput {
@@ -51,6 +38,21 @@ struct PlayerInput {
     PlayerInput(AnimationWindow& window);
     void getPlayerInput();
 };
+
+class Editor {
+    public:
+        AnimationWindow& window;
+        Player player;
+        World world;
+        Point mouse;
+        bool paused;
+        bool leftMouseDownLastFrame;
+        bool rightMouseDownLastFrame;
+        Editor(AnimationWindow& window);
+        void render();    
+        void handlePlayerInput(PlayerInput& input);    
+};
+
 
 class GameHandler {
     AnimationWindow& window; //this is the window that is being drawn to every frame

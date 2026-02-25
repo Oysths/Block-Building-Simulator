@@ -18,6 +18,7 @@
 #include "internal/nuklear_configured.h"
 #include "internal/windows_main_fix.h"
 #include "MessageType.h"
+#include "widgets/Button.h"
 
 namespace TDT4102 {
 // Forward declaration of Widget class
