@@ -105,7 +105,7 @@ Block::Block(int x, int y, int z, int width, int height, int depth, World& world
 
 
 //World-class-------------------------------------------------------
-void World::transformCoords(Player player) {
+void World::transformCoords(Player& player) {
     transformedPoints.clear();
 
     WorldPointDouble placeHolderPoint;
@@ -144,6 +144,45 @@ void World::transformCoords(Player player) {
         transformedPoints[i].y = transformedCoordsXY[1];
     }
 
+}
+
+void World::translate(Player& player) {
+    transformedPoints.clear();
+
+    WorldPointDouble placeHolderPoint;
+    //first we have to offset the coords by the player position
+    for (auto& p : referencePoints) {
+        placeHolderPoint = WorldPointDouble(
+            p.x - player.coords.x,
+            p.y - player.coords.y,
+            p.z - player.coords.z
+        );
+        transformedPoints.push_back(placeHolderPoint);
+    }
+}
+
+void World::rotate(Player& player) {
+    //applyer rotasjonsmatriser etter offsettet
+    //først XZ-rotatasjonsmatrisa (yaw)
+    for (int i = 0; i < transformedPoints.size(); ++i) {
+        const array<double, 2>& transformedCoordsXZ = yawRotation(transformedPoints[i].x, transformedPoints[i].z, player.trigValues.cXZ, player.trigValues.sXZ);
+        transformedPoints[i].x = transformedCoordsXZ[0];
+        transformedPoints[i].z = transformedCoordsXZ[1];
+    }
+
+    //applyer så YZ-rotasjonsmatrisa (pitch)
+    for (int i = 0; i < transformedPoints.size(); ++i) {
+        const array<double, 2>& transformedCoordsYZ = pitchRotation(transformedPoints[i].y, transformedPoints[i].z, player.trigValues.cYZ, player.trigValues.sYZ);
+        transformedPoints[i].y = transformedCoordsYZ[0];
+        transformedPoints[i].z = transformedCoordsYZ[1];
+    }
+
+    //finally applies roll (XY)
+    for (int i = 0; i < transformedPoints.size(); ++i) {
+        const array<double, 2>& transformedCoordsXY = rollRotation(transformedPoints[i].x, transformedPoints[i].y, player.trigValues.cXY, player.trigValues.sXY);
+        transformedPoints[i].x = transformedCoordsXY[0];
+        transformedPoints[i].y = transformedCoordsXY[1];
+    }
 }
 
 void World::renderPoints(AnimationWindow& window) {
@@ -287,9 +326,11 @@ void World::renderSurfaces(AnimationWindow& window) {
 void World::addBlock(int x, int y, int z, int width, int height, int depth) {
     blocks.push_back(Block {x, y, z, width, height, depth, *this}); //sender også objektet det ble kalt fra som reference
     int newIdx = blocks.size()-1;
-    blocksIndexesZsorted.push_back(newIdx);
-    blocksIndexesXsorted.push_back(newIdx);
-    blocksIndexesYsorted.push_back(newIdx);
+    unordered_map<string, int> block;
+    block["idx"] = newIdx;
+    blocksIndexesZsorted.push_back(block);
+    blocksIndexesXsorted.push_back(block);
+    blocksIndexesYsorted.push_back(block);
 }
 
 void World::placeBlock (Player& player) {
@@ -368,35 +409,144 @@ void World::sortBlocks() {
 }
 
 void World::sortBlockGroups(Player& player) {
-    sort(blocksIndexesZsorted.begin(), blocksIndexesZsorted.end(), [&](int a, int b) { //sorts blocks indexes by highest z value per block (high to low)
-        vector<int> az {};
-        vector<int> bz {};
-        az.push_back(abs(referencePoints.at(blocks.at(a).pointIndexes.at(0)).z - player.coords.z));
-        az.push_back(abs(referencePoints.at(blocks.at(a).pointIndexes.at(7)).z - player.coords.z));
-        bz.push_back(abs(referencePoints.at(blocks.at(b).pointIndexes.at(0)).z - player.coords.z));
-        bz.push_back(abs(referencePoints.at(blocks.at(b).pointIndexes.at(7)).z - player.coords.z));
+    sort(blocksIndexesZsorted.begin(), blocksIndexesZsorted.end(), [&](const unordered_map<string, int>& a, const unordered_map<string, int>& b) { //sorts blocks indexes by highest z value per block (high to low)
+        vector<double> az {};
+        vector<double> bz {};
+        int aidx = a.at("idx");
+        int bidx = b.at("idx");
+        az.push_back(abs(referencePoints.at(blocks.at(aidx).pointIndexes.at(0)).z - player.coords.z));
+        az.push_back(abs(referencePoints.at(blocks.at(aidx).pointIndexes.at(7)).z - player.coords.z));
+        bz.push_back(abs(referencePoints.at(blocks.at(bidx).pointIndexes.at(0)).z - player.coords.z));
+        bz.push_back(abs(referencePoints.at(blocks.at(bidx).pointIndexes.at(7)).z - player.coords.z));
         return max({az[0], az[1]}) < max({bz[0], bz[1]});
     });
 
-    sort(blocksIndexesXsorted.begin(), blocksIndexesXsorted.end(), [&](int a, int b) { //sorts blocks indexes by highest x value per block (high to low)
-        vector<int> ax {};
-        vector<int> bx {};
-        ax.push_back(abs(referencePoints.at(blocks.at(a).pointIndexes.at(0)).x - player.coords.x));
-        ax.push_back(abs(referencePoints.at(blocks.at(a).pointIndexes.at(7)).x - player.coords.x));
-        bx.push_back(abs(referencePoints.at(blocks.at(b).pointIndexes.at(0)).x - player.coords.x));
-        bx.push_back(abs(referencePoints.at(blocks.at(b).pointIndexes.at(7)).x - player.coords.x));
+    sort(blocksIndexesXsorted.begin(), blocksIndexesXsorted.end(), [&](const unordered_map<string, int>& a, const unordered_map<string, int>& b) { //sorts blocks indexes by highest x value per block (high to low)
+        vector<double> ax {};
+        vector<double> bx {};
+        int aidx = a.at("idx");
+        int bidx = b.at("idx");
+        ax.push_back(abs(referencePoints.at(blocks.at(aidx).pointIndexes.at(0)).x - player.coords.x));
+        ax.push_back(abs(referencePoints.at(blocks.at(aidx).pointIndexes.at(7)).x - player.coords.x));
+        bx.push_back(abs(referencePoints.at(blocks.at(bidx).pointIndexes.at(0)).x - player.coords.x));
+        bx.push_back(abs(referencePoints.at(blocks.at(bidx).pointIndexes.at(7)).x - player.coords.x));
         return max({ax[0], ax[1]}) < max({bx[0], bx[1]});
     });
 
-    sort(blocksIndexesZsorted.begin(), blocksIndexesZsorted.end(), [&](int a, int b) { //sorts blocks indexes by highest x value per block (high to low)
-        vector<int> ay {};
-        vector<int> by {};
-        ay.push_back(abs(referencePoints.at(blocks.at(a).pointIndexes.at(0)).y - player.coords.y));
-        ay.push_back(abs(referencePoints.at(blocks.at(a).pointIndexes.at(7)).y - player.coords.y));
-        by.push_back(abs(referencePoints.at(blocks.at(b).pointIndexes.at(0)).y - player.coords.y));
-        by.push_back(abs(referencePoints.at(blocks.at(b).pointIndexes.at(7)).y - player.coords.y));
+    sort(blocksIndexesYsorted.begin(), blocksIndexesYsorted.end(), [&](unordered_map<string, int>& a, unordered_map<string, int>& b) { //sorts blocks indexes by highest x value per block (high to low)
+        vector<double> ay {};
+        vector<double> by {};
+        int aidx = a.at("idx");
+        int bidx = b.at("idx");
+        ay.push_back(abs(referencePoints.at(blocks.at(aidx).pointIndexes.at(0)).y - player.coords.y));
+        ay.push_back(abs(referencePoints.at(blocks.at(aidx).pointIndexes.at(7)).y - player.coords.y));
+        by.push_back(abs(referencePoints.at(blocks.at(bidx).pointIndexes.at(0)).y - player.coords.y));
+        by.push_back(abs(referencePoints.at(blocks.at(bidx).pointIndexes.at(7)).y - player.coords.y));
         return max({ay[0], ay[1]}) < max({by[0], by[1]});
     });
+
+    cout << "Ferdig med å sortere" << endl;
+
+    for (auto& bz : blocksIndexesZsorted) {
+        double z0 = abs(transformedPoints.at(blocks.at(bz["idx"]).pointIndexes.at(0)).z);
+        double z7 = abs(transformedPoints.at(blocks.at(bz["idx"]).pointIndexes.at(7)).z);
+        if (z0 > z7) {
+            bz["maxidx"] = 0;
+        } else {
+            bz["maxidx"] = 7;
+        }
+    }
+
+    for (auto& by : blocksIndexesYsorted) {
+        double y0 = abs(transformedPoints.at(blocks.at(by["idx"]).pointIndexes.at(0)).y);
+        double y7 = abs(transformedPoints.at(blocks.at(by["idx"]).pointIndexes.at(7)).y);
+        if (y0 > y7) {
+            by["maxidx"] = 0;
+        } else {
+            by["maxidx"] = 7;
+        }
+    }
+
+    for (auto& bx : blocksIndexesXsorted) {
+        double x0 = abs(transformedPoints.at(blocks.at(bx["idx"]).pointIndexes.at(0)).x);
+        double x7 = abs(transformedPoints.at(blocks.at(bx["idx"]).pointIndexes.at(7)).x);
+        if (x0 > x7) {
+            bx["maxidx"] = 0;
+        } else {
+            bx["maxidx"] = 7;
+        }
+    }
+
+    cout << "Lagt til maxidx" << endl;
+
+
+    blocksRenderOrder.clear();
+
+    while (blocksRenderOrder.size() != blocks.size()) {
+
+        int blockidx = blocksIndexesZsorted.at(0).at("idx");
+        Block& furthestBlock = blocks.at(blocksIndexesZsorted.at(0).at("idx"));
+        WorldPointDouble& furthestPoint = transformedPoints.at(blocksIndexesZsorted.at(0).at("maxidx"));
+        int closestPointidx = abs(blocksIndexesZsorted.at(0).at("maxidx")-7);
+        WorldPointDouble& closestPoint = transformedPoints.at(closestPointidx);
+
+        
+        for (auto& p : blocksIndexesYsorted) {
+            WorldPointDouble& checkPointFar = transformedPoints.at(p.at("maxidx"));
+            WorldPointDouble& checkPointClose = transformedPoints.at(abs(7-p.at("maxidx")));
+            cout << "ballsss" << endl;
+            if (checkPointFar.z <= furthestPoint.z && checkPointClose.z > furthestPoint.z) { //da er den imellom og skal bli rendera først
+                if (checkPointFar.y > furthestPoint.y) {
+                    furthestPoint = checkPointFar;
+                    furthestBlock = blocks.at(p.at("idx"));
+                    blockidx = p.at("idx");
+                }
+            } 
+        }
+
+        cout << "sigma" << endl;
+
+        //for (auto& p : blocksIndexesXsorted) {
+        //    WorldPointDouble& checkPointFar = transformedPoints.at(p.at("maxidx"));
+        //    if (checkPointFar.z == furthestPoint.z && checkPointFar.y == furthestPoint.y) {
+        //        if (checkPointFar.x > furthestPoint.x) {
+        //            furthestPoint = checkPointFar;
+        //            furthestBlock = blocks.at(p.at("idx"));
+        //            blockidx = p.at("idx");
+        //        }
+        //    }
+        //}
+        blocksRenderOrder.push_back(furthestBlock);
+        cout << "Push back ";
+        
+        for (int i = 0; i < blocksIndexesZsorted.size(); ++i) {
+            if (blocksIndexesZsorted[i]["idx"] == blockidx) {
+                blocksIndexesZsorted.erase(blocksIndexesZsorted.begin() + i);
+                break;
+            }
+        }
+        for (int i = 0; i < blocksIndexesXsorted.size(); ++i) {
+            if (blocksIndexesXsorted[i]["idx"] == blockidx) {
+                blocksIndexesXsorted.erase(blocksIndexesXsorted.begin() + i);
+                break;
+            }
+        }
+        for (int i = 0; i < blocksIndexesYsorted.size(); ++i) {
+            if (blocksIndexesYsorted[i]["idx"] == blockidx) {
+                blocksIndexesYsorted.erase(blocksIndexesYsorted.begin() + i);
+                break;
+            }
+        }
+        cout << "while";
+    }
+    cout << "ferdig med funksjonen" << endl;
+    unordered_map<string, int> um;
+    for (int i = 0; i < blocks.size(); ++i) {
+        um["idx"] = i;
+        blocksIndexesZsorted.push_back(um);
+        blocksIndexesYsorted.push_back(um);
+        blocksIndexesXsorted.push_back(um);
+    }
 }
 
 vector<WorldPointDouble>& World::getTransformedPoints() {
@@ -438,7 +588,7 @@ void World::renderBlocks(AnimationWindow& window) {
     WorldPointDouble p3 {};
     WorldPointDouble p4 {};
     for (int i = blocks.size()-1; i >= 0; i--) {
-        Block b = blocks.at(i);
+        Block b = blocksRenderOrder.at(i);
         surfaces = {};
         for (const array surfaceIndexes : cubeSurfaces) {
             p1 = transformedPoints[b.pointIndexes[surfaceIndexes[0]]];
@@ -510,7 +660,81 @@ void World::renderBlocks(AnimationWindow& window) {
 }
 
 void World::renderGroups(AnimationWindow& window) {
+    vector<array<WorldPointDouble, 4>> surfaces; //list with every surface in it (the four points), the plan is to sort it and then render in the sorted order
+    WorldPointDouble p1 {}; //p1 and p2 are the points which make up a line in a cube (two corners)
+    WorldPointDouble p2 {};
+    WorldPointDouble p3 {};
+    WorldPointDouble p4 {};
+    for (int i = blocksRenderOrder.size()-1; i >= 0; i--) {
+        Block b = blocksRenderOrder.at(i);
+        surfaces = {};
+        for (const array surfaceIndexes : cubeSurfaces) {
+            p1 = transformedPoints[b.pointIndexes[surfaceIndexes[0]]];
+            p2 = transformedPoints[b.pointIndexes[surfaceIndexes[1]]];
+            p3 = transformedPoints[b.pointIndexes[surfaceIndexes[2]]];
+            p4 = transformedPoints[b.pointIndexes[surfaceIndexes[3]]];
+            surfaces.push_back({p1, p2, p3, p4});
+        }
+        sort(surfaces.begin(), surfaces.end(), compareSurfacesDescending);
+        for (int j = 0; j < 6; j++) { //a maximum of three surfaces could possibly be visible in three dimensions per cube anyways, so starting at j = 3 saves time
+            p1 = surfaces[j][0];
+            p2 = surfaces[j][1];
+            p3 = surfaces[j][2];
+            p4 = surfaces[j][3];
 
+
+            //if (p1.z < 1e-2 || p2.z < 1e-2 || p3.z < 1e-2 || p4.z < 1e-2 ) { //screenCoords-funksjonen deler på z, men vet ikke hvor mye dette faktisk har å si
+            //    continue;
+            //}
+            
+            const array<int, 2>& sCoords1 = screenCoords(p1.x, p1.y, p1.z);
+            int sX1 = sCoords1[0];
+            int sY1 = sCoords1[1];
+            Point corner1 = {sX1, sY1};
+
+            const array<int, 2> sCoords2 = screenCoords(p2.x, p2.y, p2.z);
+            int sX2 = sCoords2[0];
+            int sY2 = sCoords2[1];
+            Point corner2 = {sX2, sY2};
+
+            const array<int, 2> sCoords3 = screenCoords(p3.x, p3.y, p3.z);
+            int sX3 = sCoords3[0];
+            int sY3 = sCoords3[1];
+            Point corner3 = {sX3, sY3};
+            
+            const array<int, 2> sCoords4 = screenCoords(p4.x, p4.y, p4.z);
+            int sX4 = sCoords4[0];
+            int sY4 = sCoords4[1];
+            Point corner4 = {sX4, sY4};
+
+            if (p1.z > fov || p2.z > fov || p3.z > fov || p4.z > fov) {
+                if (0 <= sX1 && sX1 <= windowWidth) {
+                    if (0 <= sY1 && sY1 <= windowHeight) {
+                        renderBlockSide(window, corner1, corner2, corner3, corner4);
+                        continue;
+                    }
+                }
+                if (0 <= sX2 && sX2 <= windowWidth) {
+                    if (0 <= sY2 && sY2 <= windowHeight) {
+                        renderBlockSide(window, corner1, corner2, corner3, corner4);
+                        continue;
+                    }
+                }
+                if (0 <= sX3 && sX3 <= windowWidth) {
+                    if (0 <= sY3 && sY3 <= windowHeight) {
+                        renderBlockSide(window, corner1, corner2, corner3, corner4);
+                        continue;
+                    }
+                }
+                if (0 <= sX4 && sX4 <= windowWidth) {
+                    if (0 <= sY4 && sY4 <= windowHeight) {
+                        renderBlockSide(window, corner1, corner2, corner3, corner4);
+                    }
+                }
+
+            }
+        }
+    }
 }
 
 

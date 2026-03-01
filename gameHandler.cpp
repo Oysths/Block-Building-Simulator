@@ -38,17 +38,21 @@ Editor::Editor(AnimationWindow& window): window{window}, leftMouseDownLastFrame{
 void Editor::render() {
     window.setBackgroundColor(Color::white);
     player.getTrigValues();
-    world.transformCoords(player);
+    //world.transformCoords(player);
+    world.translate(player);
 
     //world.sortBlocks(); //makes the blocks render in the correct order
 
     world.sortBlockGroups(player); //sorts the blocks in correct order
+    //world.sortBlocks();
+
+    world.rotate(player);
 
     //world.renderLines(window);
     //world.renderSurfaces(window);
 
     Point midten {windowWidth/2, windowHeight/2};
-    world.renderGroups(window);
+    world.renderBlocks(window);
     window.draw_circle(midten, 3, Color::black);
 }
 

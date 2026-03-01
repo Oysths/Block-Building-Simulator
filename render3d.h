@@ -69,10 +69,13 @@ struct World {
     vector<WorldPointInt> referencePoints; //these points will never change and be the reference when we calculate the transformation and rotation every frame
     vector<WorldPointDouble> transformedPoints; //these points are post transformation AND rotation (not only transformation)
     vector<Block> blocks;
-    vector<int> blocksIndexesZsorted;
-    vector<int> blocksIndexesXsorted;
-    vector<int> blocksIndexesYsorted;
-    void transformCoords(Player player);
+    vector<unordered_map<string, int>> blocksIndexesZsorted;
+    vector<unordered_map<string, int>> blocksIndexesXsorted;
+    vector<unordered_map<string, int>> blocksIndexesYsorted;
+    vector<Block> blocksRenderOrder;
+    void transformCoords(Player& player); //inactive
+    void translate(Player& player);
+    void rotate(Player& player);
     void renderPoints(AnimationWindow& window); //inactive
     void renderLines(AnimationWindow& window); //inactive
     void renderSurfaces(AnimationWindow& window); //inactive
