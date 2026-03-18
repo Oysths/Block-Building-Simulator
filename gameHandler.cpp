@@ -52,7 +52,7 @@ void Editor::render() {
     //world.renderSurfaces(window);
 
     Point midten {windowWidth/2, windowHeight/2};
-    world.renderBlocks(window);
+    world.renderGroups(window);
     window.draw_circle(midten, 3, Color::black);
 }
 

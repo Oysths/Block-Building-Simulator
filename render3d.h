@@ -60,7 +60,14 @@ struct Block
 {
     array<int, 8> pointIndexes; //this is an array of 8 indexes, which are pointers to points in the transformedPoints in world class. The array is ordered, meaning the first index points to (0, 0, 0) relative to the blocks coordinate system (the first point). The second point will for example be (0, 0, 1) and the eight point will be (1, 1, 1). These eight points make up a block
     World* world;
+    int x;
+    int y;
+    int z;
+    int width;
+    int height;
+    int depth;
     Block(int x, int y, int z, int width, int height, int depth, World& world); //this is the constructor which will
+    void printBlock();
 
     bool operator<(const Block& rhs);
 };
@@ -72,7 +79,7 @@ struct World {
     vector<unordered_map<string, int>> blocksIndexesZsorted;
     vector<unordered_map<string, int>> blocksIndexesXsorted;
     vector<unordered_map<string, int>> blocksIndexesYsorted;
-    vector<Block> blocksRenderOrder;
+    vector<int> blocksRenderOrder;
     void transformCoords(Player& player); //inactive
     void translate(Player& player);
     void rotate(Player& player);
@@ -120,5 +127,6 @@ struct Player {
     WorldPointDouble coords {0, 2, 0};
     void move(string button);
     void getTrigValues();
+    void printPos();
     //void move(const string& button);
 };

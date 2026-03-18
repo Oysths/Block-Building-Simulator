@@ -100,8 +100,13 @@ array<int, 8> getBlockIndexes(int x, int y, int z, int width, int height, int de
 
 
 //Block-class-------------------------------------------------------
-Block::Block(int x, int y, int z, int width, int height, int depth, World& world): pointIndexes(getBlockIndexes(x, y, z, width, height, depth, world)), world{&world}
+Block::Block(int x, int y, int z, int width, int height, int depth, World& world): pointIndexes(getBlockIndexes(x, y, z, width, height, depth, world)), x{x}, y{y}, z{z}, width{width}, height{height}, depth{depth}, world{&world}
 {}
+
+void Block::printBlock() {
+    cout << "x: " << x << ", y: " << y << ", z: " << z << endl;
+    cout << "dx: " << width << ", dy: " << height << ", dz: " << depth << endl;
+}
 
 
 //World-class-------------------------------------------------------
@@ -414,11 +419,11 @@ void World::sortBlockGroups(Player& player) {
         vector<double> bz {};
         int aidx = a.at("idx");
         int bidx = b.at("idx");
-        az.push_back(abs(referencePoints.at(blocks.at(aidx).pointIndexes.at(0)).z - player.coords.z));
-        az.push_back(abs(referencePoints.at(blocks.at(aidx).pointIndexes.at(7)).z - player.coords.z));
-        bz.push_back(abs(referencePoints.at(blocks.at(bidx).pointIndexes.at(0)).z - player.coords.z));
-        bz.push_back(abs(referencePoints.at(blocks.at(bidx).pointIndexes.at(7)).z - player.coords.z));
-        return max({az[0], az[1]}) < max({bz[0], bz[1]});
+        az.push_back(abs(transformedPoints.at(blocks.at(aidx).pointIndexes.at(0)).z));
+        az.push_back(abs(transformedPoints.at(blocks.at(aidx).pointIndexes.at(7)).z));
+        bz.push_back(abs(transformedPoints.at(blocks.at(bidx).pointIndexes.at(0)).z));
+        bz.push_back(abs(transformedPoints.at(blocks.at(bidx).pointIndexes.at(7)).z));
+        return max({az[0], az[1]}) > max({bz[0], bz[1]});
     });
 
     sort(blocksIndexesXsorted.begin(), blocksIndexesXsorted.end(), [&](const unordered_map<string, int>& a, const unordered_map<string, int>& b) { //sorts blocks indexes by highest x value per block (high to low)
@@ -426,11 +431,11 @@ void World::sortBlockGroups(Player& player) {
         vector<double> bx {};
         int aidx = a.at("idx");
         int bidx = b.at("idx");
-        ax.push_back(abs(referencePoints.at(blocks.at(aidx).pointIndexes.at(0)).x - player.coords.x));
-        ax.push_back(abs(referencePoints.at(blocks.at(aidx).pointIndexes.at(7)).x - player.coords.x));
-        bx.push_back(abs(referencePoints.at(blocks.at(bidx).pointIndexes.at(0)).x - player.coords.x));
-        bx.push_back(abs(referencePoints.at(blocks.at(bidx).pointIndexes.at(7)).x - player.coords.x));
-        return max({ax[0], ax[1]}) < max({bx[0], bx[1]});
+        ax.push_back(abs(transformedPoints.at(blocks.at(aidx).pointIndexes.at(0)).x));
+        ax.push_back(abs(transformedPoints.at(blocks.at(aidx).pointIndexes.at(7)).x));
+        bx.push_back(abs(transformedPoints.at(blocks.at(bidx).pointIndexes.at(0)).x));
+        bx.push_back(abs(transformedPoints.at(blocks.at(bidx).pointIndexes.at(7)).x));
+        return max({ax[0], ax[1]}) > max({bx[0], bx[1]});
     });
 
     sort(blocksIndexesYsorted.begin(), blocksIndexesYsorted.end(), [&](unordered_map<string, int>& a, unordered_map<string, int>& b) { //sorts blocks indexes by highest x value per block (high to low)
@@ -438,18 +443,19 @@ void World::sortBlockGroups(Player& player) {
         vector<double> by {};
         int aidx = a.at("idx");
         int bidx = b.at("idx");
-        ay.push_back(abs(referencePoints.at(blocks.at(aidx).pointIndexes.at(0)).y - player.coords.y));
-        ay.push_back(abs(referencePoints.at(blocks.at(aidx).pointIndexes.at(7)).y - player.coords.y));
-        by.push_back(abs(referencePoints.at(blocks.at(bidx).pointIndexes.at(0)).y - player.coords.y));
-        by.push_back(abs(referencePoints.at(blocks.at(bidx).pointIndexes.at(7)).y - player.coords.y));
-        return max({ay[0], ay[1]}) < max({by[0], by[1]});
+        ay.push_back(abs(transformedPoints.at(blocks.at(aidx).pointIndexes.at(0)).y));
+        ay.push_back(abs(transformedPoints.at(blocks.at(aidx).pointIndexes.at(7)).y));
+        by.push_back(abs(transformedPoints.at(blocks.at(bidx).pointIndexes.at(0)).y));
+        by.push_back(abs(transformedPoints.at(blocks.at(bidx).pointIndexes.at(7)).y));
+        return max({ay[0], ay[1]}) > max({by[0], by[1]});
     });
 
-    cout << "Ferdig med å sortere" << endl;
+    //cout << "Ferdig med å sortere" << endl;
 
     for (auto& bz : blocksIndexesZsorted) {
+        //transformedPoints.at(blocks.at(bz.at("idx")).pointIndexes.at(7)).printPoint();
         double z0 = abs(transformedPoints.at(blocks.at(bz["idx"]).pointIndexes.at(0)).z);
-        double z7 = abs(transformedPoints.at(blocks.at(bz["idx"]).pointIndexes.at(7)).z);
+        double z7 = abs(transformedPoints.at(blocks .at(bz["idx"]).pointIndexes.at(7)).z);
         if (z0 > z7) {
             bz["maxidx"] = 0;
         } else {
@@ -477,34 +483,83 @@ void World::sortBlockGroups(Player& player) {
         }
     }
 
-    cout << "Lagt til maxidx" << endl;
+    //cout << "Lagt til maxidx" << endl;
 
 
     blocksRenderOrder.clear();
 
+    int i = 0;
     while (blocksRenderOrder.size() != blocks.size()) {
+        i++;
+        int j = 0;
 
         int blockidx = blocksIndexesZsorted.at(0).at("idx");
-        Block& furthestBlock = blocks.at(blocksIndexesZsorted.at(0).at("idx"));
-        WorldPointDouble& furthestPoint = transformedPoints.at(blocksIndexesZsorted.at(0).at("maxidx"));
-        int closestPointidx = abs(blocksIndexesZsorted.at(0).at("maxidx")-7);
-        WorldPointDouble& closestPoint = transformedPoints.at(closestPointidx);
-
         
-        for (auto& p : blocksIndexesYsorted) {
-            WorldPointDouble& checkPointFar = transformedPoints.at(p.at("maxidx"));
-            WorldPointDouble& checkPointClose = transformedPoints.at(abs(7-p.at("maxidx")));
-            cout << "ballsss" << endl;
-            if (checkPointFar.z <= furthestPoint.z && checkPointClose.z > furthestPoint.z) { //da er den imellom og skal bli rendera først
-                if (checkPointFar.y > furthestPoint.y) {
-                    furthestPoint = checkPointFar;
-                    furthestBlock = blocks.at(p.at("idx"));
-                    blockidx = p.at("idx");
+        int furthestPointIdx = blocks.at(blockidx).pointIndexes.at(blocksIndexesZsorted.at(0).at("maxidx"));
+        int closestPointIdx = blocks.at(blockidx).pointIndexes.at(abs(7-blocksIndexesZsorted.at(0).at("maxidx")));;
+
+        //transformedPoints.at(furthestPointIdx).printPoint();
+
+        double minxBlock;
+        double lowerBoundBlock = min(transformedPoints.at(closestPointIdx).x, transformedPoints.at(furthestPointIdx).x);
+        double upperBoundBlock = max(transformedPoints.at(closestPointIdx).x, transformedPoints.at(furthestPointIdx).x);
+        if (lowerBoundBlock < 0 && upperBoundBlock > 0) {
+            minxBlock = 0.0;
+        } else {
+            minxBlock = min(abs(transformedPoints.at(closestPointIdx).x), abs(transformedPoints.at(furthestPointIdx).x));
+        }
+        double maxz = max(abs(transformedPoints.at(closestPointIdx).z), abs(transformedPoints.at(furthestPointIdx).z));
+        double minz =  min(abs(transformedPoints.at(closestPointIdx).z), abs(transformedPoints.at(furthestPointIdx).z));
+        
+        for (auto& p : blocksIndexesXsorted) {
+            j++;
+            //cout << "i: " << i << " j: " << j << endl;
+            //blocks.at(blockidx).printBlock();
+            //blocks.at(p.at("idx")).printBlock();
+            //cout << blocksIndexesXsorted.size() << i << endl;
+            int checkPointFarIdx = blocks.at(p.at("idx")).pointIndexes.at(p.at("maxidx"));
+            int checkPointCloseIdx = blocks.at(p.at("idx")).pointIndexes.at(abs(7-p.at("maxidx")));
+            //player.printPos();
+            //cout << "ballsss" << endl;
+            if (i == 2 && j == 1) {
+                //cout << maxz << endl;
+                //cout << minz << endl;
+                //cout << abs(transformedPoints.at(checkPointFarIdx).z) << endl;
+                //cout << abs(transformedPoints.at(checkPointCloseIdx).z) << endl;
+            }
+            if (abs(transformedPoints.at(checkPointFarIdx).z) > minz || //sjekker om en z er "inni den andre blokken"
+            abs(transformedPoints.at(checkPointCloseIdx).z) > minz
+        ) { //da er den imellom og skal (kanskje) bli rendera først
+            
+                double minxCheck;
+                double lowerBound = min(transformedPoints.at(checkPointCloseIdx).x, transformedPoints.at(checkPointFarIdx).x);
+                double upperBound = max(transformedPoints.at(checkPointCloseIdx).x, transformedPoints.at(checkPointFarIdx).x);
+                if (lowerBound < 0 && upperBound > 0) {
+                    minxCheck = 0.0;
+                } else {
+                    minxCheck = min(abs(transformedPoints.at(checkPointCloseIdx).x), abs(transformedPoints.at(checkPointFarIdx).x));
                 }
+
+                
+                if (minxCheck > minxBlock) {
+                    furthestPointIdx = checkPointFarIdx;
+                    closestPointIdx = checkPointCloseIdx;
+                    blockidx = p.at("idx");
+                    minxBlock = minxCheck;
+                }
+
+
+
+
+                //if (max(abs(transformedPoints.at(checkPointCloseIdx).x), abs(transformedPoints.at(checkPointFarIdx).x))
+                //> max(abs(transformedPoints.at(furthestPointIdx).x), abs(transformedPoints.at(closestPointIdx).x))) {
+                
+                    
+                //}
             } 
         }
 
-        cout << "sigma" << endl;
+        //cout << "sigma" << endl;
 
         //for (auto& p : blocksIndexesXsorted) {
         //    WorldPointDouble& checkPointFar = transformedPoints.at(p.at("maxidx"));
@@ -516,8 +571,8 @@ void World::sortBlockGroups(Player& player) {
         //        }
         //    }
         //}
-        blocksRenderOrder.push_back(furthestBlock);
-        cout << "Push back ";
+        blocksRenderOrder.push_back(blockidx);
+        //cout << "Push back ";
         
         for (int i = 0; i < blocksIndexesZsorted.size(); ++i) {
             if (blocksIndexesZsorted[i]["idx"] == blockidx) {
@@ -537,9 +592,9 @@ void World::sortBlockGroups(Player& player) {
                 break;
             }
         }
-        cout << "while";
+        //cout << "while";
     }
-    cout << "ferdig med funksjonen" << endl;
+    //cout << "ferdig med funksjonen" << endl;
     unordered_map<string, int> um;
     for (int i = 0; i < blocks.size(); ++i) {
         um["idx"] = i;
@@ -588,7 +643,7 @@ void World::renderBlocks(AnimationWindow& window) {
     WorldPointDouble p3 {};
     WorldPointDouble p4 {};
     for (int i = blocks.size()-1; i >= 0; i--) {
-        Block b = blocksRenderOrder.at(i);
+        Block b = blocks.at(i);
         surfaces = {};
         for (const array surfaceIndexes : cubeSurfaces) {
             p1 = transformedPoints[b.pointIndexes[surfaceIndexes[0]]];
@@ -660,13 +715,14 @@ void World::renderBlocks(AnimationWindow& window) {
 }
 
 void World::renderGroups(AnimationWindow& window) {
+    starttidFrame = chrono::steady_clock::now();
     vector<array<WorldPointDouble, 4>> surfaces; //list with every surface in it (the four points), the plan is to sort it and then render in the sorted order
     WorldPointDouble p1 {}; //p1 and p2 are the points which make up a line in a cube (two corners)
     WorldPointDouble p2 {};
     WorldPointDouble p3 {};
     WorldPointDouble p4 {};
-    for (int i = blocksRenderOrder.size()-1; i >= 0; i--) {
-        Block b = blocksRenderOrder.at(i);
+    for (int i = 0; i < blocksRenderOrder.size(); ++i) {
+        Block b = blocks.at(blocksRenderOrder.at(i));
         surfaces = {};
         for (const array surfaceIndexes : cubeSurfaces) {
             p1 = transformedPoints[b.pointIndexes[surfaceIndexes[0]]];
@@ -676,7 +732,7 @@ void World::renderGroups(AnimationWindow& window) {
             surfaces.push_back({p1, p2, p3, p4});
         }
         sort(surfaces.begin(), surfaces.end(), compareSurfacesDescending);
-        for (int j = 0; j < 6; j++) { //a maximum of three surfaces could possibly be visible in three dimensions per cube anyways, so starting at j = 3 saves time
+        for (int j = 3; j < 6; j++) { //a maximum of three surfaces could possibly be visible in three dimensions per cube anyways, so starting at j = 3 saves time
             p1 = surfaces[j][0];
             p2 = surfaces[j][1];
             p3 = surfaces[j][2];
@@ -782,4 +838,8 @@ void Player::getTrigValues() {
     s = sin(angles[2]);
     trigValues.cXY = c;
     trigValues.sXY = s;
+}
+
+void Player::printPos() {
+    cout << "x: " << coords.x << ", y: " << coords.y << ", z: " << coords.z << endl;
 }
