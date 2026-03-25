@@ -104,11 +104,14 @@ inline bool Block::operator<(const Block& rhs) {
 }
 
 struct Player {
+    int droneIdx = 0;
     array<double, 3> angles {0, 0, 0}; //should be in following order: yaw, pitch, roll, same order as rotations matricies
     array<double, 3> deltaAngles {0, 0, 0}; //used to change angles
     TrigValues trigValues;
     WorldPointDouble coords {0, 2, 0};
     void move(string button);
     void getTrigValues();
+    std::vector<std::unordered_map<std::string, int>> Drones;
+    void droneIdxCheck();
     //void move(const string& button);
 };

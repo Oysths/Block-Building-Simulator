@@ -14,6 +14,7 @@ class MainMenu {
     AnimationWindow& window; //window object as reference
     //gameModes& gameMode;
     public:
+        Player player;
         list<Button> buttons {}; //We need a list to store buttons. This is because when we add a button to buttons, AnimationWindow saves a pointer to that address. When we add a new button, every object is moved, so the pointer is no longer valid. A list fixes this
         MainMenu(AnimationWindow& window);
         void render();
@@ -60,6 +61,7 @@ class GameHandler {
     MainMenu menu; //the mainmenu-object
     PlayerInput playerInput;
     public:
+        Player player;
         Editor editor;
         GameHandler(AnimationWindow& window, gameModes& gameMode);
         void update(); //the most important method, should be called every frame from main. Checks for updates and then renders the appropriate gamemode

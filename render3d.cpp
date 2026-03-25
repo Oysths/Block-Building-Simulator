@@ -519,3 +519,11 @@ void Player::getTrigValues() {
     trigValues.cXY = c;
     trigValues.sXY = s;
 }
+
+void Player::droneIdxCheck() {
+    if (droneIdx < 0) {
+        droneIdx += Drones.size();
+    } else if (droneIdx >= Drones.size()) {
+        droneIdx -= Drones.size();
+    }
+}

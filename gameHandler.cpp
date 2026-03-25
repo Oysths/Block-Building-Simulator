@@ -6,12 +6,22 @@ void changeToEditor() {
     newestGameMode = gameModes::editor;
 }
 
+void changeDrone(int& droneIdx, bool direction) {
+    if (direction) {
+        droneIdx++;
+    } else {
+        droneIdx--;
+    }
+}
+
+
 //MainMenu-class--------------------------------------------------------------
 MainMenu::MainMenu(AnimationWindow& window): window(window)
 {}
 
 void MainMenu::render() {
     window.setBackgroundColor(Color::blue);
+    player.droneIdxCheck;
     //cout << "Prøver å rendere mainmenu" << endl;
 }
 
@@ -150,6 +160,8 @@ GameHandler::GameHandler(AnimationWindow& window, gameModes& gameMode): window(w
 {
     menu.addButton(0.44*windowWidth, 0.44*windowHeight, 0.12*windowWidth, 0.12*windowHeight, "Play", changeToEditor);
     menu.addButton(0.45*windowWidth, 0.6*windowHeight, 0.1*windowWidth, 0.1*windowHeight, "Editor", changeToEditor);
+    menu.addButton(0.35*windowWidth, 0.2*windowHeight, 0.05*windowWidth, 0.05*windowHeight, "=>", changeDrone(menu.player::droneIdx, 1));
+    menu.addButton(0.05*windowWidth, 0.2*windowHeight, 0.05*windowWidth, 0.05*windowHeight, "<=", changeDrone(menu.player::droneIdx, 0));
     //cout << "Knappen er lagt til" << endl;
 }
 
