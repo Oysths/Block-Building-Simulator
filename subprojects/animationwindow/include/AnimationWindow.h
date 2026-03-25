@@ -19,6 +19,7 @@
 #include "internal/windows_main_fix.h"
 #include "MessageType.h"
 #include "widgets/Button.h"
+#include "widgets/TextBox.h"
 
 namespace TDT4102 {
 // Forward declaration of Widget class
