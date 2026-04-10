@@ -9,6 +9,8 @@ enum class gameModes {mainMenu, editor, fpv};
 
 //extern gameModes gameMode;
 void changeToEditor(); //changes to the editor-gamemode
+void nextMap(); //changes to the editor-gamemode
+void previousMap(); //changes to the editor-gamemode
 
 class MainMenu {
     AnimationWindow& window; //window object as reference

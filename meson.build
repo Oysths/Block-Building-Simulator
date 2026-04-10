@@ -10,7 +10,7 @@ std_lib_facilities_dep = dependency('std_lib_facilities', fallback: ['std_lib_fa
 
 compiler_flags = ['-Wconversion', '-fdiagnostics-color=always', '-Werror=return-type', '-static']
 
-src = ['gameHandler.cpp', 'main.cpp', 'render3d.cpp']
+src = ['gameHandler.cpp', 'getMaps.cpp', 'main.cpp', 'render3d.cpp']
 
 if host_machine.system() == 'windows'
   ld_flags = ['-static', '-lstdc++exp']

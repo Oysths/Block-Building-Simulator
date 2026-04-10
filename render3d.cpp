@@ -367,7 +367,7 @@ vector<WorldPointDouble>& World::getTransformedPoints() {
     return transformedPoints;
 }
 
-bool compareSurfacesDescending(const array<WorldPointDouble, 4>& a, const array<WorldPointDouble, 4>& b) { //using painter algorithm since theres no z-buffer in the library: render objects with the largest z value first
+bool compareSurfacesDescending(const array<WorldPointDouble, 4>& a, const array<WorldPointDouble, 4>& b) {
     //we don't divide by four to find average and we don't square root in return because the return value is a bool and it is mathematecally identical to not do so and it saves time
     double avgAz = a[0].z + a[1].z + a[2].z + a[3].z;
     double avgAx = a[0].x + a[1].x + a[2].x + a[3].x;
@@ -471,6 +471,18 @@ void World::renderBlocks(AnimationWindow& window) {
             }
         }
     }
+}
+
+void World::saveMapData() {
+    //filesystem::path fileName{"Data/Maps/"};
+    //mapName = "Map";
+    //fileName += mapName + ".json";
+    //ofstream outputStream{fileName};
+    //for (auto& b : blocks) {
+    //    outputStream << referencePoints.at(b.pointIndexes[0]).x << " ";
+    //    outputStream << referencePoints.at(b.pointIndexes[0]).y << " ";
+    //    outputStream << referencePoints.at(b.pointIndexes[0]).z << endl;
+    //}
 }
 
 

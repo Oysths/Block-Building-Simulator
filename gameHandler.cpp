@@ -2,9 +2,19 @@
 
 gameModes newestGameMode = gameModes::mainMenu;
 
+//int mapIdx = 1;
+
 void changeToEditor() {
     newestGameMode = gameModes::editor;
 }
+
+//void nextMap() {
+//    mapIdx++;
+//}
+//
+//void previousMap() {
+//    mapIdx--;
+//}
 
 //MainMenu-class--------------------------------------------------------------
 MainMenu::MainMenu(AnimationWindow& window): window(window)
@@ -152,8 +162,8 @@ GameHandler::GameHandler(AnimationWindow& window, gameModes& gameMode): window(w
     menu.addButton(0.45*windowWidth, 0.6*windowHeight, 0.1*windowWidth, 0.1*windowHeight, "Editor", changeToEditor);
     menu.addButton(0.2*windowWidth, 0.3*windowHeight, 0.06*windowWidth, 0.06*windowHeight, "<-", changeToEditor);
     menu.addButton(0.3*windowWidth, 0.3*windowHeight, 0.06*windowWidth, 0.06*windowHeight, "->", changeToEditor);
-    menu.addButton(0.7*windowWidth, 0.3*windowHeight, 0.06*windowWidth, 0.06*windowHeight, "<-", changeToEditor);
-    menu.addButton(0.8*windowWidth, 0.3*windowHeight, 0.06*windowWidth, 0.06*windowHeight, "->", changeToEditor);
+    //menu.addButton(0.7*windowWidth, 0.3*windowHeight, 0.06*windowWidth, 0.06*windowHeight, "<-", changeToEditor);
+    //menu.addButton(0.8*windowWidth, 0.3*windowHeight, 0.06*windowWidth, 0.06*windowHeight, "->", changeToEditor);
     TextBox d {{300, 300}, 300, 300, "Drone selector"};
     window.add(d);
     //TextBox m {"Map selector"};

@@ -58,7 +58,7 @@ struct WorldPointInt { //a three-dimensional point (absolute coordinates are alw
 
 struct Block
 {
-    array<int, 8> pointIndexes; //this is an array of 8 indexes, which are pointers to points in the transformedPoints in world class. The array is ordered, meaning the first index points to (0, 0, 0) relative to the blocks coordinate system (the first point). The second point will for example be (0, 0, 1) and the eight point will be (1, 1, 1). These eight points make up a block
+    array<int, 8> pointIndexes; //this is an array of 8 indexes, which are pointers to points in the referencePoints in world class. The array is ordered, meaning the first index points to (0, 0, 0) relative to the blocks coordinate system (the first point). The second point will for example be (0, 0, 1) and the eight point will be (1, 1, 1). These eight points make up a block
     World* world;
     Block(int x, int y, int z, World& world); //this is the constructor which will
 
@@ -69,6 +69,7 @@ struct World {
     vector<WorldPointInt> referencePoints; //these points will never change and be the reference when we calculate the transformation and rotation every frame
     vector<WorldPointDouble> transformedPoints; //these points are post transformation AND rotation (not only transformation)
     vector<Block> blocks;
+    //string mapName;
     void transformCoords(Player player);
     void renderPoints(AnimationWindow& window); //inactive
     void renderLines(AnimationWindow& window); //inactive
@@ -80,6 +81,7 @@ struct World {
     void breakBlock(Player player);
     void sortBlocks();
     vector<WorldPointDouble>& getTransformedPoints();
+    void saveMapData();
 };
 
 inline bool Block::operator<(const Block& rhs) {
