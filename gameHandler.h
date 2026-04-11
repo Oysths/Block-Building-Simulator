@@ -30,7 +30,7 @@ struct PlayerInput {
     bool w;
     bool a;
     bool s;
-    bool Ctrl;
+    bool ctrl;
     bool d;
     bool q;
     bool e;
@@ -40,6 +40,8 @@ struct PlayerInput {
     bool LShift;
     bool LMouse;
     bool RMouse;
+    bool LArrow;
+    bool RArrow;
     PlayerInput(AnimationWindow& window);
     void getPlayerInput();
 };
@@ -53,6 +55,8 @@ class Editor {
         bool paused;
         bool leftMouseDownLastFrame;
         bool rightMouseDownLastFrame;
+        bool leftArrowDownLastFrame;
+        bool rightArrowDownLastFrame;
         Editor(AnimationWindow& window);
         void render();    
         void handlePlayerInput(PlayerInput& input);    

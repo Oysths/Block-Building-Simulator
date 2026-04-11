@@ -32,7 +32,7 @@ string getMapNameFromIndex(int idx) {
 void nextMap() {
     int numberOfMaps = distance(filesystem::directory_iterator(mapsFilePath), filesystem::directory_iterator{});
     if (mapIdx == numberOfMaps - 1) {
-        mapIdx = 1;
+        mapIdx = 0;
     } else {
         mapIdx++;
     }
@@ -41,7 +41,7 @@ void nextMap() {
 
 void previousMap() {
     int numberOfMaps = distance(filesystem::directory_iterator(mapsFilePath), filesystem::directory_iterator{});
-    if (mapIdx == 1) {
+    if (mapIdx == 0) {
         mapIdx = numberOfMaps - 1;
     } else {
         mapIdx--;
@@ -110,10 +110,26 @@ void Editor::handlePlayerInput(PlayerInput& input) {
     rightMouseDownLastFrame = rightMouseverdiHolder;
 
 
+    bool leftArrowverdiHolder = input.LArrow; //same thing for the arrow buttons
+    if (input.LArrow && leftArrowDownLastFrame) { 
+        input.LArrow = false;
+    }
+    leftArrowDownLastFrame = leftArrowverdiHolder;
+
+    bool rightArrowverdiHolder = input.RArrow; //same thing for the arrow buttons
+    if (input.RArrow && rightArrowDownLastFrame) { 
+        input.RArrow = false;
+    }
+    rightArrowDownLastFrame = rightArrowverdiHolder;  
+
 
 
     if (input.LMouse && input.RMouse) { //cant place and destroy a block at the same time
         input.LMouse = false;
+    }
+
+    if (input.LArrow && input.RArrow) { //cant do both at the same time
+        input.LArrow = false;
     }
 
     if (input.w) {
@@ -142,6 +158,10 @@ void Editor::handlePlayerInput(PlayerInput& input) {
         fov -= 0.01;
     } if (input.p) {
         fov += 0.01;
+    } if (input.LArrow) {
+        player.previousColor();
+    } if (input.RArrow) {
+        player.nextColor();
     }
     Point newmouse = window.get_mouse_coordinates();
     double dXZ = newmouse.x - mouse.x;
@@ -179,14 +199,18 @@ void PlayerInput::getPlayerInput() {
     m = mPressed;
     bool pPressed = window.is_key_down(KeyboardKey::P);
     p = pPressed;
-    bool CtrlPressed = window.is_key_down(KeyboardKey::LEFT_CTRL);
-    Ctrl = CtrlPressed;
+    bool ctrlPressed = window.is_key_down(KeyboardKey::LEFT_CTRL);
+    ctrl = ctrlPressed;
     bool spacePressed = window.is_key_down(KeyboardKey::SPACE);
     space = spacePressed;
-    bool leftShiftPressed = window.is_key_down(KeyboardKey::LEFT_SHIFT);
-    LShift = leftShiftPressed;
     bool escPressed = window.is_key_down(KeyboardKey::ESCAPE);
     esc = escPressed;
+    bool leftShiftPressed = window.is_key_down(KeyboardKey::LEFT_SHIFT);
+    LShift = leftShiftPressed;
+    bool leftArrowPressed = window.is_key_down(KeyboardKey::LEFT);
+    LArrow = leftArrowPressed;
+    bool rightArrowPressed = window.is_key_down(KeyboardKey::RIGHT);
+    RArrow = rightArrowPressed;
     bool leftMousePressed = window.is_left_mouse_button_down();
     LMouse = leftMousePressed;
     bool rightMousePressed = window.is_right_mouse_button_down();
@@ -228,7 +252,7 @@ void GameHandler::update() {
         editor.handlePlayerInput(playerInput);
         //cout << "Ber om player input" << endl;
     }
-    if (playerInput.s && playerInput.Ctrl) { //save with ctrl s
+    if (playerInput.s && playerInput.ctrl) { //save with ctrl s
         editor.world.saveMapData();
     }
     //cout << "renderer" << endl;
@@ -243,6 +267,7 @@ void GameHandler::checkForGameModeChange() {
                 mapName.setVisible(false);
             }
         }
+        editor.world.loadMap(mapName.getText());
         editor.mouse = window.get_mouse_coordinates(); //So that the start reference mouse pointer value is the actual start value and not (0, 0)
         editor.paused = false;
         gameMode = newestGameMode;

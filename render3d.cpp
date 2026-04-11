@@ -100,7 +100,7 @@ array<int, 8> getBlockIndexes(int x, int y, int z, World& world) { //this functi
 
 
 //Block-class-------------------------------------------------------
-Block::Block(int x, int y, int z, World& world): pointIndexes(getBlockIndexes(x, y, z, world)), world{&world}
+Block::Block(int x, int y, int z, World& world, BlockColors& color): pointIndexes(getBlockIndexes(x, y, z, world)), world{&world}, color(color)
 {}
 
 
@@ -284,8 +284,8 @@ void World::renderSurfaces(AnimationWindow& window) {
     }
 }
 
-void World::addBlock(int x, int y, int z) {
-    blocks.push_back(Block {x, y, z, *this}); //sender også objektet det ble kalt fra som reference
+void World::addBlock(int x, int y, int z, BlockColors& color) {
+    blocks.push_back(Block {x, y, z, *this, color}); //sender også objektet det ble kalt fra som reference
 }
 
 void World::placeBlock (Player player) {
@@ -318,7 +318,7 @@ void World::placeBlock (Player player) {
             }
         }
         if (breakOutOfLoop) {
-            addBlock(floor(p.x), floor(p.y), floor(p.z));
+            addBlock(floor(p.x), floor(p.y), floor(p.z), player.activeColor);
             //cout << "Blokk plassert" << endl;
             break;
         }
@@ -383,9 +383,47 @@ bool compareSurfacesDescending(const array<WorldPointDouble, 4>& a, const array<
     //return avgA > avgB;
 }
 
-void World::renderBlockSide(AnimationWindow& window, Point corner1, Point corner2, Point corner3, Point corner4) {
-    window.draw_triangle(corner1, corner2, corner3, Color::green); //draw two triangles to make the side of the cube which have four sides
-    window.draw_triangle(corner2, corner3, corner4, Color::green);
+void World::renderBlockSide(AnimationWindow& window, Point corner1, Point corner2, Point corner3, Point corner4, BlockColors& color) {
+    Color blockColor {Color::red};
+    switch (color) { //makes sure the correct color is rendered on the block
+        case BlockColors::red:
+            break;
+        case BlockColors::orange:
+            blockColor = Color::orange;
+            break;
+        case BlockColors::yellow:
+            blockColor = Color::yellow;
+            break;
+        case BlockColors::green:
+            blockColor = Color::green;
+            break;
+        case BlockColors::blue:
+            blockColor = Color::blue;
+            break;
+        case BlockColors::purple:
+            blockColor = Color::purple;
+            break;
+        case BlockColors::black:
+            blockColor = Color::black;
+            break;
+        case BlockColors::white:
+            blockColor = Color::white;
+            break;
+        case BlockColors::grey:
+            blockColor = Color::grey;
+            break;
+        case BlockColors::brown:
+            blockColor = Color::brown;
+            break;
+        case BlockColors::burly_wood:
+            blockColor = Color::burly_wood;
+            break;
+        case BlockColors::pink:
+            blockColor = Color::pink;
+            break;
+    }
+    window.draw_triangle(corner1, corner2, corner3, blockColor); //draw two triangles to make the side of the cube which have four sides
+    window.draw_triangle(corner2, corner3, corner4, blockColor);
     window.draw_line(corner1, corner2);
     window.draw_line(corner2, corner4);
     window.draw_line(corner3, corner4);
@@ -403,6 +441,7 @@ void World::renderBlocks(AnimationWindow& window) {
     WorldPointDouble p4 {};
     for (int i = blocks.size()-1; i >= 0; i--) {
         Block b = blocks.at(i);
+        BlockColors color {b.color};
         surfaces = {};
         for (const array surfaceIndexes : cubeSurfaces) {
             p1 = transformedPoints[b.pointIndexes[surfaceIndexes[0]]];
@@ -446,25 +485,25 @@ void World::renderBlocks(AnimationWindow& window) {
             if (p1.z > fov || p2.z > fov || p3.z > fov || p4.z > fov) {
                 if (0 <= sX1 && sX1 <= windowWidth) {
                     if (0 <= sY1 && sY1 <= windowHeight) {
-                        renderBlockSide(window, corner1, corner2, corner3, corner4);
+                        renderBlockSide(window, corner1, corner2, corner3, corner4, color);
                         continue;
                     }
                 }
                 if (0 <= sX2 && sX2 <= windowWidth) {
                     if (0 <= sY2 && sY2 <= windowHeight) {
-                        renderBlockSide(window, corner1, corner2, corner3, corner4);
+                        renderBlockSide(window, corner1, corner2, corner3, corner4, color);
                         continue;
                     }
                 }
                 if (0 <= sX3 && sX3 <= windowWidth) {
                     if (0 <= sY3 && sY3 <= windowHeight) {
-                        renderBlockSide(window, corner1, corner2, corner3, corner4);
+                        renderBlockSide(window, corner1, corner2, corner3, corner4, color);
                         continue;
                     }
                 }
                 if (0 <= sX4 && sX4 <= windowWidth) {
                     if (0 <= sY4 && sY4 <= windowHeight) {
-                        renderBlockSide(window, corner1, corner2, corner3, corner4);
+                        renderBlockSide(window, corner1, corner2, corner3, corner4, color);
                     }
                 }
 
@@ -475,19 +514,66 @@ void World::renderBlocks(AnimationWindow& window) {
 
 void World::saveMapData() {
     filesystem::path fileName{"Data/Maps/"};
-    mapName = "Map";
-    fileName += mapName + ".json";
+    fileName += mapName + ".txt";
     ofstream outputStream{fileName};
     outputStream << blocks.size() << endl;
     for (auto& b : blocks) {
         outputStream << referencePoints.at(b.pointIndexes[0]).x << " ";
         outputStream << referencePoints.at(b.pointIndexes[0]).y << " ";
-        outputStream << referencePoints.at(b.pointIndexes[0]).z << endl;
+        outputStream << referencePoints.at(b.pointIndexes[0]).z << " ";
+        outputStream << static_cast<int>(b.color) << endl;
     }
 }
 
+void World::loadMap(string mapNameString) { //loads the map (which consists of the blocks-vector and the referencepoints-vector) by calling the addBlock-function which initializes every block
+    mapName = mapNameString; 
+    filesystem::path fileName{"Data/Maps/"};
+    fileName += mapName + ".txt";
+    ifstream inputStream{fileName};
+
+    blocks.clear();
+    referencePoints.clear();
+
+    int blockCount;
+    inputStream >> blockCount;
+    string nextWord;
+    int x, y, z, colorInt;
+    BlockColors color;
+    for (int i = 0; i < blockCount; ++i) {
+        inputStream >> x;
+        inputStream >> y;
+        inputStream >> z;
+        inputStream >> colorInt;
+        color = static_cast<BlockColors>(colorInt);
+        addBlock(x, y, z, color);
+    }
+}
 
 //Player-class--------------------------------------------------------------
+Player::Player(): activeColor(BlockColors::green)
+{}
+
+void Player::nextColor() {
+    int colorIdx = static_cast<int>(activeColor);
+    int colorLength = static_cast<int>(BlockColors::pink);
+    if (colorIdx < colorLength) {
+        colorIdx++;
+    } else {
+        colorIdx = 0;
+    }
+    activeColor = static_cast<BlockColors>(colorIdx);
+}
+
+void Player::previousColor() {
+    int colorIdx = static_cast<int>(activeColor);
+    int colorLength = static_cast<int>(BlockColors::pink);
+    if (colorIdx > 0) {
+        colorIdx--;
+    } else {
+        colorIdx = colorLength;
+    }
+    activeColor = static_cast<BlockColors>(colorIdx);
+}
 
 void Player::move(string button) {
     auto sluttid = std::chrono::steady_clock::now();

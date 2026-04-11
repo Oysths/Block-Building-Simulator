@@ -12,6 +12,8 @@ extern const int windowHeight;
 //extern auto sluttid;
 //extern auto varighet;
 
+enum class BlockColors {red, orange, yellow, green, blue, purple, black, white, grey, brown, burly_wood,  pink}; //if you add more colors - make sure that pink is the last one! This is because the game tracks the number of entries in the enum class by pinks numerical value
+
 struct TrigValues {
     double cXZ;
     double sXZ;
@@ -60,7 +62,8 @@ struct Block
 {
     array<int, 8> pointIndexes; //this is an array of 8 indexes, which are pointers to points in the referencePoints in world class. The array is ordered, meaning the first index points to (0, 0, 0) relative to the blocks coordinate system (the first point). The second point will for example be (0, 0, 1) and the eight point will be (1, 1, 1). These eight points make up a block
     World* world;
-    Block(int x, int y, int z, World& world); //this is the constructor which will
+    BlockColors color;
+    Block(int x, int y, int z, World& world, BlockColors& color); //this is the constructor which will
 
     bool operator<(const Block& rhs);
 };
@@ -69,19 +72,20 @@ struct World {
     vector<WorldPointInt> referencePoints; //these points will never change and be the reference when we calculate the transformation and rotation every frame
     vector<WorldPointDouble> transformedPoints; //these points are post transformation AND rotation (not only transformation)
     vector<Block> blocks;
-    string mapName; //mapName is unknown at compiletime
+    string mapName; //unknown at compiletime
     void transformCoords(Player player);
     void renderPoints(AnimationWindow& window); //inactive
     void renderLines(AnimationWindow& window); //inactive
     void renderSurfaces(AnimationWindow& window); //inactive
-    void renderBlockSide(AnimationWindow& window, Point corner1, Point corner2, Point corner3, Point corner4);
+    void renderBlockSide(AnimationWindow& window, Point corner1, Point corner2, Point corner3, Point corner4, BlockColors& color);
     void renderBlocks(AnimationWindow& window);
-    void addBlock(int x, int y, int z);
+    void addBlock(int x, int y, int z, BlockColors& color);
     void placeBlock(Player player);
     void breakBlock(Player player);
     void sortBlocks();
     vector<WorldPointDouble>& getTransformedPoints();
     void saveMapData();
+    void loadMap(string mapNameString);
 };
 
 inline bool Block::operator<(const Block& rhs) {
@@ -110,6 +114,10 @@ struct Player {
     array<double, 3> deltaAngles {0, 0, 0}; //used to change angles
     TrigValues trigValues;
     WorldPointDouble coords {0, 2, 0};
+    BlockColors activeColor;
+    Player();
+    void nextColor();
+    void previousColor();
     void move(string button);
     void getTrigValues();
     //void move(const string& button);
