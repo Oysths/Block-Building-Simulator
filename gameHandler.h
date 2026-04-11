@@ -11,10 +11,12 @@ enum class gameModes {mainMenu, editor, fpv};
 void changeToEditor(); //changes to the editor-gamemode
 void nextMap(); //changes to the editor-gamemode
 void previousMap(); //changes to the editor-gamemode
+string getMapNameFromIndex(int idx);
 
 class MainMenu {
     AnimationWindow& window; //window object as reference
     //gameModes& gameMode;
+    bool mapNameLagtTil; //maybe a kronglete solution to the problem, but at least it works
     public:
         list<Button> buttons {}; //We need a list to store buttons. This is because when we add a button to buttons, AnimationWindow saves a pointer to that address. When we add a new button, every object is moved, so the pointer is no longer valid. A list fixes this
         MainMenu(AnimationWindow& window);
@@ -28,6 +30,7 @@ struct PlayerInput {
     bool w;
     bool a;
     bool s;
+    bool Ctrl;
     bool d;
     bool q;
     bool e;

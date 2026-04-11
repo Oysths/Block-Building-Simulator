@@ -69,7 +69,7 @@ struct World {
     vector<WorldPointInt> referencePoints; //these points will never change and be the reference when we calculate the transformation and rotation every frame
     vector<WorldPointDouble> transformedPoints; //these points are post transformation AND rotation (not only transformation)
     vector<Block> blocks;
-    //string mapName;
+    string mapName; //mapName is unknown at compiletime
     void transformCoords(Player player);
     void renderPoints(AnimationWindow& window); //inactive
     void renderLines(AnimationWindow& window); //inactive

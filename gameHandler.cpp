@@ -2,27 +2,65 @@
 
 gameModes newestGameMode = gameModes::mainMenu;
 
-//int mapIdx = 1;
+int mapIdx = 1;
+
+TextBox mapName {
+{static_cast<int>(round(0.2*windowWidth)), static_cast<int>(round(0.4*windowHeight))},
+static_cast<int>(round(0.2*windowWidth)), 
+static_cast<int>(round(0.05*windowHeight)),
+"filler"};
+
+filesystem::path mapsFilePath{"Data/Maps"};
 
 void changeToEditor() {
     newestGameMode = gameModes::editor;
 }
 
-//void nextMap() {
-//    mapIdx++;
-//}
-//
-//void previousMap() {
-//    mapIdx--;
-//}
+string getMapNameFromIndex(int idx) {
+    auto map = mapsFilePath.begin();
+    int counter = 0;
+    string mapFileName = "";
+    for (auto& map : filesystem::directory_iterator(mapsFilePath)) {
+        if (counter == idx) {
+            mapFileName = map.path().stem().string();
+        }
+        counter++;
+    }
+    return mapFileName;
+}
+
+void nextMap() {
+    int numberOfMaps = distance(filesystem::directory_iterator(mapsFilePath), filesystem::directory_iterator{});
+    if (mapIdx == numberOfMaps - 1) {
+        mapIdx = 1;
+    } else {
+        mapIdx++;
+    }
+    mapName.setText(getMapNameFromIndex(mapIdx));
+}
+
+void previousMap() {
+    int numberOfMaps = distance(filesystem::directory_iterator(mapsFilePath), filesystem::directory_iterator{});
+    if (mapIdx == 1) {
+        mapIdx = numberOfMaps - 1;
+    } else {
+        mapIdx--;
+    }
+    mapName.setText(getMapNameFromIndex(mapIdx));
+}
 
 //MainMenu-class--------------------------------------------------------------
-MainMenu::MainMenu(AnimationWindow& window): window(window)
+MainMenu::MainMenu(AnimationWindow& window): window(window), mapNameLagtTil(false)
 {}
 
 void MainMenu::render() {
     window.setBackgroundColor(Color::blue);
+    if (!mapNameLagtTil) {
+        window.add(mapName);
+        mapNameLagtTil = true;
+    }
     //cout << "Prøver å rendere mainmenu" << endl;
+    
 }
 
 void MainMenu::addButton(double x, double y, double width, double height, string label, function<void ()> function) {
@@ -141,6 +179,8 @@ void PlayerInput::getPlayerInput() {
     m = mPressed;
     bool pPressed = window.is_key_down(KeyboardKey::P);
     p = pPressed;
+    bool CtrlPressed = window.is_key_down(KeyboardKey::LEFT_CTRL);
+    Ctrl = CtrlPressed;
     bool spacePressed = window.is_key_down(KeyboardKey::SPACE);
     space = spacePressed;
     bool leftShiftPressed = window.is_key_down(KeyboardKey::LEFT_SHIFT);
@@ -160,12 +200,12 @@ GameHandler::GameHandler(AnimationWindow& window, gameModes& gameMode): window(w
 {
     menu.addButton(0.44*windowWidth, 0.44*windowHeight, 0.12*windowWidth, 0.12*windowHeight, "Play", changeToEditor);
     menu.addButton(0.45*windowWidth, 0.6*windowHeight, 0.1*windowWidth, 0.1*windowHeight, "Editor", changeToEditor);
-    menu.addButton(0.2*windowWidth, 0.3*windowHeight, 0.06*windowWidth, 0.06*windowHeight, "<-", changeToEditor);
-    menu.addButton(0.3*windowWidth, 0.3*windowHeight, 0.06*windowWidth, 0.06*windowHeight, "->", changeToEditor);
+    menu.addButton(0.2*windowWidth, 0.3*windowHeight, 0.06*windowWidth, 0.06*windowHeight, "<-", previousMap);
+    menu.addButton(0.3*windowWidth, 0.3*windowHeight, 0.06*windowWidth, 0.06*windowHeight, "->", nextMap);
     //menu.addButton(0.7*windowWidth, 0.3*windowHeight, 0.06*windowWidth, 0.06*windowHeight, "<-", changeToEditor);
     //menu.addButton(0.8*windowWidth, 0.3*windowHeight, 0.06*windowWidth, 0.06*windowHeight, "->", changeToEditor);
-    TextBox d {{300, 300}, 300, 300, "Drone selector"};
-    window.add(d);
+    //TextBox d {{300, 300}, 300, 300, "Drone selector"};
+    //window.add(d);
     //TextBox m {"Map selector"};
     //cout << "Knappen er lagt til" << endl;
 }
@@ -188,6 +228,9 @@ void GameHandler::update() {
         editor.handlePlayerInput(playerInput);
         //cout << "Ber om player input" << endl;
     }
+    if (playerInput.s && playerInput.Ctrl) { //save with ctrl s
+        editor.world.saveMapData();
+    }
     //cout << "renderer" << endl;
     render();
 }
@@ -197,10 +240,11 @@ void GameHandler::checkForGameModeChange() {
         if (newestGameMode == gameModes::editor && gameMode == gameModes::mainMenu) { //then the game is transitioning from menu to editor
             for (auto& b : menu.buttons) { //går gjennom alle knappene i main menu og skjuler dem
                 b.setVisible(false);
-                editor.mouse = window.get_mouse_coordinates(); //So that the start reference mouse pointer value is the actual start value and not (0, 0)
-                editor.paused = false;
+                mapName.setVisible(false);
             }
         }
+        editor.mouse = window.get_mouse_coordinates(); //So that the start reference mouse pointer value is the actual start value and not (0, 0)
+        editor.paused = false;
         gameMode = newestGameMode;
         //cout << "byttet gamemode" << endl;
     }

@@ -474,15 +474,16 @@ void World::renderBlocks(AnimationWindow& window) {
 }
 
 void World::saveMapData() {
-    //filesystem::path fileName{"Data/Maps/"};
-    //mapName = "Map";
-    //fileName += mapName + ".json";
-    //ofstream outputStream{fileName};
-    //for (auto& b : blocks) {
-    //    outputStream << referencePoints.at(b.pointIndexes[0]).x << " ";
-    //    outputStream << referencePoints.at(b.pointIndexes[0]).y << " ";
-    //    outputStream << referencePoints.at(b.pointIndexes[0]).z << endl;
-    //}
+    filesystem::path fileName{"Data/Maps/"};
+    mapName = "Map";
+    fileName += mapName + ".json";
+    ofstream outputStream{fileName};
+    outputStream << blocks.size() << endl;
+    for (auto& b : blocks) {
+        outputStream << referencePoints.at(b.pointIndexes[0]).x << " ";
+        outputStream << referencePoints.at(b.pointIndexes[0]).y << " ";
+        outputStream << referencePoints.at(b.pointIndexes[0]).z << endl;
+    }
 }
 
 
