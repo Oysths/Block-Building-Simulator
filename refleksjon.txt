@@ -9,17 +9,3 @@ Spillet skulle egentlig være en dronesimulator i 3d sammen med Axel Harr, men h
 øvinger godkjent, så han droppa ut. Han skrev ikke noe av koden som er i det innleverte spillet,
 han jobbet nemlig på input fra en dronekontroller, mens jeg jobbet med 3d-greiene. Målet er å
 få implementert en dronemodus inn i spillet, slik at man kan fly rundt på mapsa man har laget.
-
-Litt om optimaliseringsprosessen:
-3d-enginen var veldig treg da jeg først skrev den (det er min første gang), og så fikk jeg tips
-av AI til hvordan jeg kunne gjøre den bedre (jeg forstod hva jeg gjorde og copy pastet ikke direkte).
-3d-enginen funker greit nå for opptil en del blokker (noen hundre til noen tusen), men er ikke i nærheten av industristandard-
-effektivitet. Jeg tror det hovedsakelig kommer av at vi ikke har tilgang til en zbuffer
-gjennom animationwindow. Hadde vi f.eks. brukt opengl, som har en zbuffer som tar i bruk gpu-en,
-som gjør at man slipper å gjøre masse omveier med å sortere blokker og overflater og ta mange
-omveier. Da hadde man også spillet at piksler renderes "oppå hverandre" noe de gjør nå og jeg regner
-med koster en del. Vi fant ut at rendering er ganske kostbart (i performance altså). Jeg så også
-på å groupe blocks sammen, slik at en block kan ha en vilkårlig høyde, bredde og dybde. Det tror 
-jeg hadde vært der jeg kunne spart mest tid, men jeg klarte ikke (på tross av mange forsøk) å
-implementere en sorteringsalgoritme som bestemte i hvilken rekkefølge blokkene renderes. Jeg tror 
-en slik algoritme bør finnes da, gitt at gruppene med blokker er firkantede og ikke "bøyes".

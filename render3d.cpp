@@ -142,7 +142,7 @@ DefaultBlock::DefaultBlock(int x, int y, int z, World& world): pointIndexes(getB
 Block::Block(int x, int y, int z, World& world, BlockColors& color): DefaultBlock(x, y, z, world), color{color}
 {}
 
-//need to define this overloaded operator in the cpp file in order to avoid a multiple definitions error
+//need to define this overloaded operator in the cpp file in order to avoid an error
 bool Block::operator<(const Block& rhs) { //returns whether left has shortest euclidean distance (compared to right)
     vector<WorldPointDouble>& transformedPoints = world->getTransformedPoints();
 
