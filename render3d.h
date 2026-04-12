@@ -14,6 +14,8 @@ extern const int windowHeight;
 
 enum class BlockColors {red, orange, yellow, green, blue, purple, black, white, grey, brown, burly_wood,  pink}; //if you add more colors - make sure that pink is the last one! This is because the game tracks the number of entries in the enum class by pinks numerical value
 
+Color getColor(BlockColors& color);
+
 struct TrigValues {
     double cXZ;
     double sXZ;
@@ -77,7 +79,7 @@ struct World {
     void renderPoints(AnimationWindow& window); //inactive
     void renderLines(AnimationWindow& window); //inactive
     void renderSurfaces(AnimationWindow& window); //inactive
-    void renderBlockSide(AnimationWindow& window, Point corner1, Point corner2, Point corner3, Point corner4, BlockColors& color);
+    void renderBlockSide(AnimationWindow& window, Point corner1, Point corner2, Point corner3, Point corner4, Color& color);
     void renderBlocks(AnimationWindow& window);
     void addBlock(int x, int y, int z, BlockColors& color);
     void placeBlock(Player player);
@@ -115,10 +117,13 @@ struct Player {
     TrigValues trigValues;
     WorldPointDouble coords {0, 2, 0};
     BlockColors activeColor;
+    Color activeColorColor; //this is the type that can actually be rendered and is being passed as an argument
     Player();
+    void updateColor();
     void nextColor();
     void previousColor();
     void move(string button);
     void getTrigValues();
+    void resetPlayer();
     //void move(const string& button);
 };

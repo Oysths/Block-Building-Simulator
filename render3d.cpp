@@ -383,47 +383,9 @@ bool compareSurfacesDescending(const array<WorldPointDouble, 4>& a, const array<
     //return avgA > avgB;
 }
 
-void World::renderBlockSide(AnimationWindow& window, Point corner1, Point corner2, Point corner3, Point corner4, BlockColors& color) {
-    Color blockColor {Color::red};
-    switch (color) { //makes sure the correct color is rendered on the block
-        case BlockColors::red:
-            break;
-        case BlockColors::orange:
-            blockColor = Color::orange;
-            break;
-        case BlockColors::yellow:
-            blockColor = Color::yellow;
-            break;
-        case BlockColors::green:
-            blockColor = Color::green;
-            break;
-        case BlockColors::blue:
-            blockColor = Color::blue;
-            break;
-        case BlockColors::purple:
-            blockColor = Color::purple;
-            break;
-        case BlockColors::black:
-            blockColor = Color::black;
-            break;
-        case BlockColors::white:
-            blockColor = Color::white;
-            break;
-        case BlockColors::grey:
-            blockColor = Color::grey;
-            break;
-        case BlockColors::brown:
-            blockColor = Color::brown;
-            break;
-        case BlockColors::burly_wood:
-            blockColor = Color::burly_wood;
-            break;
-        case BlockColors::pink:
-            blockColor = Color::pink;
-            break;
-    }
-    window.draw_triangle(corner1, corner2, corner3, blockColor); //draw two triangles to make the side of the cube which have four sides
-    window.draw_triangle(corner2, corner3, corner4, blockColor);
+void World::renderBlockSide(AnimationWindow& window, Point corner1, Point corner2, Point corner3, Point corner4, Color& color) {
+    window.draw_triangle(corner1, corner2, corner3, color); //draw two triangles to make the side of the cube which have four sides
+    window.draw_triangle(corner2, corner3, corner4, color);
     window.draw_line(corner1, corner2);
     window.draw_line(corner2, corner4);
     window.draw_line(corner3, corner4);
@@ -442,6 +404,7 @@ void World::renderBlocks(AnimationWindow& window) {
     for (int i = blocks.size()-1; i >= 0; i--) {
         Block b = blocks.at(i);
         BlockColors color {b.color};
+        Color realColor = getColor(color);
         surfaces = {};
         for (const array surfaceIndexes : cubeSurfaces) {
             p1 = transformedPoints[b.pointIndexes[surfaceIndexes[0]]];
@@ -485,25 +448,25 @@ void World::renderBlocks(AnimationWindow& window) {
             if (p1.z > fov || p2.z > fov || p3.z > fov || p4.z > fov) {
                 if (0 <= sX1 && sX1 <= windowWidth) {
                     if (0 <= sY1 && sY1 <= windowHeight) {
-                        renderBlockSide(window, corner1, corner2, corner3, corner4, color);
+                        renderBlockSide(window, corner1, corner2, corner3, corner4, realColor);
                         continue;
                     }
                 }
                 if (0 <= sX2 && sX2 <= windowWidth) {
                     if (0 <= sY2 && sY2 <= windowHeight) {
-                        renderBlockSide(window, corner1, corner2, corner3, corner4, color);
+                        renderBlockSide(window, corner1, corner2, corner3, corner4, realColor);
                         continue;
                     }
                 }
                 if (0 <= sX3 && sX3 <= windowWidth) {
                     if (0 <= sY3 && sY3 <= windowHeight) {
-                        renderBlockSide(window, corner1, corner2, corner3, corner4, color);
+                        renderBlockSide(window, corner1, corner2, corner3, corner4, realColor);
                         continue;
                     }
                 }
                 if (0 <= sX4 && sX4 <= windowWidth) {
                     if (0 <= sY4 && sY4 <= windowHeight) {
-                        renderBlockSide(window, corner1, corner2, corner3, corner4, color);
+                        renderBlockSide(window, corner1, corner2, corner3, corner4, realColor);
                     }
                 }
 
@@ -534,27 +497,104 @@ void World::loadMap(string mapNameString) { //loads the map (which consists of t
     blocks.clear();
     referencePoints.clear();
 
-    int blockCount;
-    inputStream >> blockCount;
-    string nextWord;
-    int x, y, z, colorInt;
-    BlockColors color;
-    for (int i = 0; i < blockCount; ++i) {
-        inputStream >> x;
-        inputStream >> y;
-        inputStream >> z;
-        inputStream >> colorInt;
-        color = static_cast<BlockColors>(colorInt);
-        addBlock(x, y, z, color);
+    if (filesystem::is_empty(fileName)) { //add a single block to map if empty
+        BlockColors green {BlockColors::green};
+        addBlock(0, 0, 4, green);
+    } else { //initialize map normally
+        int blockCount;
+        inputStream >> blockCount;
+        string nextWord;
+        int x, y, z, colorInt;
+        BlockColors color;
+        for (int i = 0; i < blockCount; ++i) {
+            inputStream >> x;
+            inputStream >> y;
+            inputStream >> z;
+            inputStream >> colorInt;
+            color = static_cast<BlockColors>(colorInt);
+            addBlock(x, y, z, color);
+        }
     }
 }
 
 //Player-class--------------------------------------------------------------
-Player::Player(): activeColor(BlockColors::green)
+Player::Player(): activeColor(BlockColors::green), activeColorColor(getColor(activeColor))
 {}
 
-void Player::nextColor() {
-    int colorIdx = static_cast<int>(activeColor);
+Color getColor(BlockColors& color) {
+    Color defaultReturn {Color::green};
+    switch (color) { //returns the correct corresponing color
+        case BlockColors::red:
+            return Color::red;
+        case BlockColors::orange:
+            return Color::orange;
+        case BlockColors::yellow:
+            return Color::yellow;
+        case BlockColors::green:
+            return Color::green;
+        case BlockColors::blue:
+            return Color::blue;
+        case BlockColors::purple:
+            return Color::purple;
+        case BlockColors::black:
+            return Color::black;
+        case BlockColors::white:
+            return Color::white;
+        case BlockColors::grey:
+            return Color::grey;
+        case BlockColors::brown:
+            return Color::brown;
+        case BlockColors::burly_wood:
+            return Color::burly_wood;
+        case BlockColors::pink:
+            return Color::pink;
+    }
+    return defaultReturn;
+}
+
+void Player::updateColor() {
+    switch (activeColor) { //makes sure the correct color is rendered on the block
+        case BlockColors::red:
+            activeColorColor = Color::red;
+            break;
+        case BlockColors::orange:
+            activeColorColor = Color::orange;
+            break;
+        case BlockColors::yellow:
+            activeColorColor = Color::yellow;
+            break;
+        case BlockColors::green:
+            activeColorColor = Color::green;
+            break;
+        case BlockColors::blue:
+            activeColorColor = Color::blue;
+            break;
+        case BlockColors::purple:
+            activeColorColor = Color::purple;
+            break;
+        case BlockColors::black:
+            activeColorColor = Color::black;
+            break;
+        case BlockColors::white:
+            activeColorColor = Color::white;
+            break;
+        case BlockColors::grey:
+            activeColorColor = Color::grey;
+            break;
+        case BlockColors::brown:
+            activeColorColor = Color::brown;
+            break;
+        case BlockColors::burly_wood:
+            activeColorColor = Color::burly_wood;
+            break;
+        case BlockColors::pink:
+            activeColorColor = Color::pink;
+            break;
+    }
+}
+
+void Player::nextColor() { //goes to the next available color, gets the index of the color, increases it by one and finds the new color
+    int colorIdx = static_cast<int>(activeColor); 
     int colorLength = static_cast<int>(BlockColors::pink);
     if (colorIdx < colorLength) {
         colorIdx++;
@@ -562,9 +602,10 @@ void Player::nextColor() {
         colorIdx = 0;
     }
     activeColor = static_cast<BlockColors>(colorIdx);
+    updateColor();
 }
 
-void Player::previousColor() {
+void Player::previousColor() { //goes to the next available color, gets the index of the color, decreases it by one and finds the new color
     int colorIdx = static_cast<int>(activeColor);
     int colorLength = static_cast<int>(BlockColors::pink);
     if (colorIdx > 0) {
@@ -573,6 +614,7 @@ void Player::previousColor() {
         colorIdx = colorLength;
     }
     activeColor = static_cast<BlockColors>(colorIdx);
+    updateColor();
 }
 
 void Player::move(string button) {
@@ -601,6 +643,12 @@ void Player::move(string button) {
     } else if (button == "E") {
         angles[2] += 0.02;
     }
+}
+
+void Player::resetPlayer() {
+    angles = {0, 0, 0}; //should be in following order: yaw, pitch, roll, same order as rotations matricies
+    deltaAngles = {0, 0, 0}; //used to change angles
+    coords = {0, 2, 0};
 }
 
 void Player::getTrigValues() {

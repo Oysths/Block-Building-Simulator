@@ -2,13 +2,7 @@
 
 gameModes newestGameMode = gameModes::mainMenu;
 
-int mapIdx = 1;
-
-TextBox mapName {
-{static_cast<int>(round(0.2*windowWidth)), static_cast<int>(round(0.4*windowHeight))},
-static_cast<int>(round(0.2*windowWidth)), 
-static_cast<int>(round(0.05*windowHeight)),
-"filler"};
+int mapIdx = 0;
 
 filesystem::path mapsFilePath{"Data/Maps"};
 
@@ -28,6 +22,12 @@ string getMapNameFromIndex(int idx) {
     }
     return mapFileName;
 }
+
+TextBox mapName {
+{static_cast<int>(round(0.2*windowWidth)), static_cast<int>(round(0.4*windowHeight))},
+static_cast<int>(round(0.2*windowWidth)), 
+static_cast<int>(round(0.05*windowHeight)),
+getMapNameFromIndex(0)};
 
 void nextMap() {
     int numberOfMaps = distance(filesystem::directory_iterator(mapsFilePath), filesystem::directory_iterator{});
@@ -92,7 +92,7 @@ void Editor::render() {
     //world.renderSurfaces(window);
     Point midten {windowWidth/2, windowHeight/2};
     world.renderBlocks(window);
-    window.draw_circle(midten, 3, Color::black);
+    window.draw_circle(midten, 6, player.activeColorColor, Color::white);
 }
 
 void Editor::handlePlayerInput(PlayerInput& input) {
@@ -162,6 +162,17 @@ void Editor::handlePlayerInput(PlayerInput& input) {
         player.previousColor();
     } if (input.RArrow) {
         player.nextColor();
+    } 
+    if (input.mouseWheel) { //if mouseWheel is non-zero (means it has moved), then iterate through color the corresponding amount of times
+        if (input.mouseWheel > 0) {
+            for (int i = 0; i < input.mouseWheel; i++) {
+                player.nextColor();
+            }
+        } else {
+            for (int i = 0; i < -input.mouseWheel; i++) {
+                player.previousColor();
+            }
+        }
     }
     Point newmouse = window.get_mouse_coordinates();
     double dXZ = newmouse.x - mouse.x;
@@ -180,9 +191,9 @@ PlayerInput::PlayerInput(AnimationWindow& window): window{window}, esc{false}, w
 {}
 
 
-void PlayerInput::getPlayerInput() {
+void PlayerInput::setPlayerInput() {
     //cout << "Sjekker spillerinput" << endl;
-    
+    mouseWheel = round(window.get_delta_mouse_wheel());
     bool wPressed = window.is_key_down(KeyboardKey::W);
     w = wPressed;
     bool aPressed = window.is_key_down(KeyboardKey::A);
@@ -220,9 +231,9 @@ void PlayerInput::getPlayerInput() {
 
 //updateScreen-class----------------------------------------------------------
 
-GameHandler::GameHandler(AnimationWindow& window, gameModes& gameMode): window(window), gameMode(gameMode), menu{window}, editor{window}, playerInput{window}
+GameHandler::GameHandler(AnimationWindow& window, gameModes& gameMode): window(window), gameMode(gameMode), menu{window}, editor{window}, playerInput{window}, escDownLastFrame(false)
 {
-    menu.addButton(0.44*windowWidth, 0.44*windowHeight, 0.12*windowWidth, 0.12*windowHeight, "Play", changeToEditor);
+    //menu.addButton(0.44*windowWidth, 0.44*windowHeight, 0.12*windowWidth, 0.12*windowHeight, "Play", changeToEditor); //will be added later when drones are added
     menu.addButton(0.45*windowWidth, 0.6*windowHeight, 0.1*windowWidth, 0.1*windowHeight, "Editor", changeToEditor);
     menu.addButton(0.2*windowWidth, 0.3*windowHeight, 0.06*windowWidth, 0.06*windowHeight, "<-", previousMap);
     menu.addButton(0.3*windowWidth, 0.3*windowHeight, 0.06*windowWidth, 0.06*windowHeight, "->", nextMap);
@@ -246,7 +257,7 @@ void GameHandler::render() {
 }
 
 void GameHandler::update() {
-    playerInput.getPlayerInput();
+    playerInput.setPlayerInput();
     checkForGameModeChange();
     if (gameMode == gameModes::editor) {
         editor.handlePlayerInput(playerInput);
@@ -255,6 +266,7 @@ void GameHandler::update() {
     if (playerInput.s && playerInput.ctrl) { //save with ctrl s
         editor.world.saveMapData();
     }
+    handlePlayerInput();
     //cout << "renderer" << endl;
     render();
 }
@@ -266,12 +278,53 @@ void GameHandler::checkForGameModeChange() {
                 b.setVisible(false);
                 mapName.setVisible(false);
             }
+            editor.world.loadMap(mapName.getText()); //initialize stuff so everythings ready
+            editor.player.resetPlayer();
+            editor.mouse = window.get_mouse_coordinates(); //So that the start reference mouse pointer value is the actual start value and not (0, 0)
+            editor.paused = false;
         }
-        editor.world.loadMap(mapName.getText());
-        editor.mouse = window.get_mouse_coordinates(); //So that the start reference mouse pointer value is the actual start value and not (0, 0)
-        editor.paused = false;
+        if (newestGameMode == gameModes::mainMenu && gameMode == gameModes::editor) {
+            for (auto& b : menu.buttons) {
+                b.setVisible(true);
+                mapName.setVisible(true);
+            }
+        }
         gameMode = newestGameMode;
         //cout << "byttet gamemode" << endl;
+    }
+}
+
+void GameHandler::handlePlayerInput() {
+    bool escVerdiHolder = playerInput.esc;
+    if (playerInput.esc && escDownLastFrame) {
+        playerInput.esc = false;
+    }
+    escDownLastFrame = escVerdiHolder;
+
+
+    if (playerInput.esc) {
+        switch (gameMode)
+        {
+        case (gameModes::editor):
+            newestGameMode = gameModes::mainMenu;
+            break;
+        
+        case (gameModes::mainMenu):
+            window.close();
+            break;
+        }
+    }
+}
+
+void GameHandler::confirmMaps() {
+    int numberOfMaps = distance(filesystem::directory_iterator(mapsFilePath), filesystem::directory_iterator{});
+    if (!numberOfMaps) {
+        filesystem::path fileName = mapsFilePath;
+        string mapNameString = "an_unnamed_map";
+        fileName += "/" + mapNameString + ".txt";
+        ofstream outputStream{fileName}; //ofstream automatically creates file if it doesn't exist
+        outputStream << "";
+        mapName.setText(mapNameString);
     }
 }
 

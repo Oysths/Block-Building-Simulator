@@ -19,7 +19,8 @@ auto* startptr = &starttid;
 int main() {
     AnimationWindow window(50, 50, windowWidth, windowHeight, "3d-renderer");
     gameModes gameMode = gameModes::mainMenu;
-    GameHandler screen = GameHandler(window, gameMode);
+    GameHandler gameHandler = GameHandler(window, gameMode);
+    gameHandler.confirmMaps();
     //for (int i = -30; i < 30; i++) {
     //    for (int j = 0; j < 1; j++) {
     //        for (int k = -30; k < 30; k++) {
@@ -36,7 +37,7 @@ int main() {
             starttid = chrono::steady_clock::now();
         }
         
-        screen.update(); 
+        gameHandler.update(); 
         //cout << "Ferdig med å rendere" << endl;
         window.next_frame();
         //cout << screen.fpv.player.angles[0] << endl;

@@ -42,8 +42,9 @@ struct PlayerInput {
     bool RMouse;
     bool LArrow;
     bool RArrow;
+    int mouseWheel;
     PlayerInput(AnimationWindow& window);
-    void getPlayerInput();
+    void setPlayerInput();
 };
 
 class Editor {
@@ -68,6 +69,7 @@ class GameHandler {
     gameModes& gameMode; //tracks the current gamemode
     MainMenu menu; //the mainmenu-object
     PlayerInput playerInput;
+    bool escDownLastFrame; //gamehandler handles esc- which should take you one step "back"; from editor to menu, and from menu to quitting the game
     public:
         Editor editor;
         GameHandler(AnimationWindow& window, gameModes& gameMode);
@@ -75,4 +77,6 @@ class GameHandler {
         void checkForGameModeChange(); //checks for changes in gamemode - called be the update method
         void render(); //checks which gamemode is active and renders the appropriate gamemode - called by the update method
         void play();
+        void handlePlayerInput();
+        void confirmMaps(); //makes sure that there is at least one map in the map folder, will create an empty map if not
 };
