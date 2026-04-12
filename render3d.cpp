@@ -98,10 +98,35 @@ array<int, 8> getBlockIndexes(int x, int y, int z, World& world) { //this functi
     return returnArray;
 }
 
+//DefaultBlock-class------------------------------------------------
+DefaultBlock::DefaultBlock(int x, int y, int z, World& world): pointIndexes(getBlockIndexes(x, y, z, world)), world{&world}
+{}
 
 //Block-class-------------------------------------------------------
-Block::Block(int x, int y, int z, World& world, BlockColors& color): pointIndexes(getBlockIndexes(x, y, z, world)), world{&world}, color(color)
+Block::Block(int x, int y, int z, World& world, BlockColors& color): DefaultBlock(x, y, z, world), color{color}
 {}
+
+//need to define this overloaded operator in the cpp file in order to avoid a multiple definitions error
+bool Block::operator<(const Block& rhs) {
+    vector<WorldPointDouble>& transformedPoints = world->getTransformedPoints();
+
+    WorldPointDouble p1 = transformedPoints.at(pointIndexes[0]); //takes the middle point of the blocks for reference, as any random point (even though they are the same index) leads to the possibility of the point in the cube furthest away being closer than that same point in the cube closer to us
+    WorldPointDouble p11 = transformedPoints.at(pointIndexes[7]);
+
+    double p1x = (p11.x+p1.x);
+    double p1y = (p11.y+p1.y);
+    double p1z = (p11.z+p1.z);
+
+    WorldPointDouble p2 = transformedPoints.at(rhs.pointIndexes[0]);
+    WorldPointDouble p22 = transformedPoints.at(rhs.pointIndexes[7]);
+
+    double p2x = (p22.x+p2.x);
+    double p2y = (p22.y+p2.y);
+    double p2z = (p22.z+p2.z);
+
+    return p1z*p1z + p1x*p1x + p1y*p1y < p2z*p2z + p2x*p2x + p2y*p2y; //since both blocks are in the transformed system, we only need to check a random z for both blocks and compare them (but they have to be the same index)
+    //return p1.z < p2.z;
+}
 
 
 //World-class-------------------------------------------------------
@@ -285,7 +310,11 @@ void World::renderSurfaces(AnimationWindow& window) {
 }
 
 void World::addBlock(int x, int y, int z, BlockColors& color) {
-    blocks.push_back(Block {x, y, z, *this, color}); //sender også objektet det ble kalt fra som reference
+    try { //tries to add block to map
+        blocks.push_back(Block {x, y, z, *this, color}); //sender også objektet det ble kalt fra som reference
+    } catch (...) { //cathes all exeptions
+        cout << "Could not add block to map." << endl;
+    }
 }
 
 void World::placeBlock (Player player) {
@@ -493,7 +522,6 @@ void World::loadMap(string mapNameString) { //loads the map (which consists of t
     filesystem::path fileName{"Data/Maps/"};
     fileName += mapName + ".txt";
     ifstream inputStream{fileName};
-
     blocks.clear();
     referencePoints.clear();
 

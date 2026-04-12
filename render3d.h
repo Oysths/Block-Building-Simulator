@@ -60,13 +60,17 @@ struct WorldPointInt { //a three-dimensional point (absolute coordinates are alw
 
 //struct Surface
 
-struct Block
+struct DefaultBlock
 {
     array<int, 8> pointIndexes; //this is an array of 8 indexes, which are pointers to points in the referencePoints in world class. The array is ordered, meaning the first index points to (0, 0, 0) relative to the blocks coordinate system (the first point). The second point will for example be (0, 0, 1) and the eight point will be (1, 1, 1). These eight points make up a block
     World* world;
-    BlockColors color;
-    Block(int x, int y, int z, World& world, BlockColors& color); //this is the constructor which will
+    DefaultBlock(int x, int y, int z, World& world);
 
+};
+
+struct Block : public DefaultBlock {
+    BlockColors color;
+    Block(int x, int y, int z, World& world, BlockColors& color); //this is the constructor which will make a block with color
     bool operator<(const Block& rhs);
 };
 
@@ -90,26 +94,26 @@ struct World {
     void loadMap(string mapNameString);
 };
 
-inline bool Block::operator<(const Block& rhs) {
-    vector<WorldPointDouble>& transformedPoints = world->getTransformedPoints();
-
-    WorldPointDouble p1 = transformedPoints.at(pointIndexes[0]); //takes the middle point of the blocks for reference, as any random point (even though they are the same index) leads to the possibility of the point in the cube furthest away being closer than that same point in the cube closer to us
-    WorldPointDouble p11 = transformedPoints.at(pointIndexes[7]);
-
-    double p1x = (p11.x+p1.x);
-    double p1y = (p11.y+p1.y);
-    double p1z = (p11.z+p1.z);
-
-    WorldPointDouble p2 = transformedPoints.at(rhs.pointIndexes[0]);
-    WorldPointDouble p22 = transformedPoints.at(rhs.pointIndexes[7]);
-
-    double p2x = (p22.x+p2.x);
-    double p2y = (p22.y+p2.y);
-    double p2z = (p22.z+p2.z);
-
-    return p1z*p1z + p1x*p1x + p1y*p1y < p2z*p2z + p2x*p2x + p2y*p2y; //since both blocks are in the transformed system, we only need to check a random z for both blocks and compare them (but they have to be the same index)
-    //return p1.z < p2.z;
-}
+//inline bool Block::operator<(const Block& rhs) {
+//    vector<WorldPointDouble>& transformedPoints = world->getTransformedPoints();
+//
+//    WorldPointDouble p1 = transformedPoints.at(pointIndexes[0]); //takes the middle point of the blocks for reference, as any random point (even though they are the same index) leads to the possibility of the point in the cube furthest away being closer than that same point in the cube closer to us
+//    WorldPointDouble p11 = transformedPoints.at(pointIndexes[7]);
+//
+//    double p1x = (p11.x+p1.x);
+//    double p1y = (p11.y+p1.y);
+//    double p1z = (p11.z+p1.z);
+//
+//    WorldPointDouble p2 = transformedPoints.at(rhs.pointIndexes[0]);
+//    WorldPointDouble p22 = transformedPoints.at(rhs.pointIndexes[7]);
+//
+//    double p2x = (p22.x+p2.x);
+//    double p2y = (p22.y+p2.y);
+//    double p2z = (p22.z+p2.z);
+//
+//    return p1z*p1z + p1x*p1x + p1y*p1y < p2z*p2z + p2x*p2x + p2y*p2y; //since both blocks are in the transformed system, we only need to check a random z for both blocks and compare them (but they have to be the same index)
+//    //return p1.z < p2.z;
+//}
 
 struct Player {
     array<double, 3> angles {0, 0, 0}; //should be in following order: yaw, pitch, roll, same order as rotations matricies

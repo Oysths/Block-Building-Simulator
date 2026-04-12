@@ -55,7 +55,7 @@ MainMenu::MainMenu(AnimationWindow& window): window(window), mapNameLagtTil(fals
 
 void MainMenu::render() {
     window.setBackgroundColor(Color::blue);
-    if (!mapNameLagtTil) {
+    if (!mapNameLagtTil) { //adds the mapName to window if it hasn't done so yet (only executed first frame)
         window.add(mapName);
         mapNameLagtTil = true;
     }
@@ -91,7 +91,11 @@ void Editor::render() {
     //world.renderLines(window);
     //world.renderSurfaces(window);
     Point midten {windowWidth/2, windowHeight/2};
-    world.renderBlocks(window);
+    try { //tries to render the world's (jojo ref) blocks
+        world.renderBlocks(window);
+    } catch(...) { //catches all exeptions
+        cout << "Could not render blocks." << endl;
+    }
     window.draw_circle(midten, 6, player.activeColorColor, Color::white);
 }
 
