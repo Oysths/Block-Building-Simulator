@@ -14,7 +14,7 @@ string getMapNameFromIndex(int idx) {
     auto map = mapsFilePath.begin();
     int counter = 0;
     string mapFileName = "";
-    for (auto& map : filesystem::directory_iterator(mapsFilePath)) {
+    for (auto& map : filesystem::directory_iterator(mapsFilePath)) { //iterates the map directory until the index is matching
         if (counter == idx) {
             mapFileName = map.path().stem().string();
         }
@@ -23,12 +23,14 @@ string getMapNameFromIndex(int idx) {
     return mapFileName;
 }
 
+//the textbox that shows what the map is called
 TextBox mapName {
 {static_cast<int>(round(0.2*windowWidth)), static_cast<int>(round(0.4*windowHeight))},
 static_cast<int>(round(0.2*windowWidth)), 
 static_cast<int>(round(0.05*windowHeight)),
 getMapNameFromIndex(0)};
 
+//selects the next map in main menu
 void nextMap() {
     int numberOfMaps = distance(filesystem::directory_iterator(mapsFilePath), filesystem::directory_iterator{});
     if (mapIdx == numberOfMaps - 1) {
@@ -39,6 +41,7 @@ void nextMap() {
     mapName.setText(getMapNameFromIndex(mapIdx));
 }
 
+//selects the previous map in main menu
 void previousMap() {
     int numberOfMaps = distance(filesystem::directory_iterator(mapsFilePath), filesystem::directory_iterator{});
     if (mapIdx == 0) {
@@ -53,6 +56,7 @@ void previousMap() {
 MainMenu::MainMenu(AnimationWindow& window): window(window), mapNameLagtTil(false)
 {}
 
+//renders the main menu
 void MainMenu::render() {
     window.setBackgroundColor(Color::blue);
     if (!mapNameLagtTil) { //adds the mapName to window if it hasn't done so yet (only executed first frame)
@@ -63,6 +67,7 @@ void MainMenu::render() {
     
 }
 
+//adds a button to the main menu
 void MainMenu::addButton(double x, double y, double width, double height, string label, function<void ()> function) {
     Point p {
         static_cast<int>(round(x)), 
@@ -83,6 +88,7 @@ void MainMenu::addButton(double x, double y, double width, double height, string
 Editor::Editor(AnimationWindow& window): window{window}, leftMouseDownLastFrame{false}
 {}
 
+//renders the editor
 void Editor::render() {
     window.setBackgroundColor(Color::white);
     player.getTrigValues();
@@ -99,6 +105,7 @@ void Editor::render() {
     window.draw_circle(midten, 6, player.activeColorColor, Color::white);
 }
 
+//acts upon playerinput in the editor
 void Editor::handlePlayerInput(PlayerInput& input) {
     bool leftMouseverdiHolder = input.LMouse; //this ensures you can't hold the left mouse for more than one frame
     if (input.LMouse && leftMouseDownLastFrame) { 
@@ -194,7 +201,7 @@ void Editor::handlePlayerInput(PlayerInput& input) {
 PlayerInput::PlayerInput(AnimationWindow& window): window{window}, esc{false}, w{false}, a{false}, s{false}, d{false}, q{false}, e{false}, m{false}, p{false}, space{false}, LShift{false}, LMouse{false}, RMouse{false}
 {}
 
-
+//checks the playerinput and updates corresponding variables
 void PlayerInput::setPlayerInput() {
     //cout << "Sjekker spillerinput" << endl;
     mouseWheel = round(window.get_delta_mouse_wheel());
@@ -237,8 +244,9 @@ void PlayerInput::setPlayerInput() {
 
 GameHandler::GameHandler(AnimationWindow& window, gameModes& gameMode): window(window), gameMode(gameMode), menu{window}, editor{window}, playerInput{window}, escDownLastFrame(false)
 {
+    //adds buttons to the main screen
     //menu.addButton(0.44*windowWidth, 0.44*windowHeight, 0.12*windowWidth, 0.12*windowHeight, "Play", changeToEditor); //will be added later when drones are added
-    menu.addButton(0.45*windowWidth, 0.6*windowHeight, 0.1*windowWidth, 0.1*windowHeight, "Editor", changeToEditor);
+    menu.addButton(0.43*windowWidth, 0.45*windowHeight, 0.14*windowWidth, 0.14*windowHeight, "Editor", changeToEditor);
     menu.addButton(0.2*windowWidth, 0.3*windowHeight, 0.06*windowWidth, 0.06*windowHeight, "<-", previousMap);
     menu.addButton(0.3*windowWidth, 0.3*windowHeight, 0.06*windowWidth, 0.06*windowHeight, "->", nextMap);
     //menu.addButton(0.7*windowWidth, 0.3*windowHeight, 0.06*windowWidth, 0.06*windowHeight, "<-", changeToEditor);
@@ -249,6 +257,7 @@ GameHandler::GameHandler(AnimationWindow& window, gameModes& gameMode): window(w
     //cout << "Knappen er lagt til" << endl;
 }
 
+//decides which scene to render
 void GameHandler::render() {
     switch (gameMode) { //Checks which gameMode the game is in to decide which render function to call
         case gameModes::mainMenu:
@@ -260,6 +269,7 @@ void GameHandler::render() {
     }
 }
 
+//most important function probably, is ran every frame and handles the game
 void GameHandler::update() {
     playerInput.setPlayerInput();
     checkForGameModeChange();
@@ -275,6 +285,7 @@ void GameHandler::update() {
     render();
 }
 
+//acts upon gamemode change and handles variables and calls methods correspondingly
 void GameHandler::checkForGameModeChange() {
     if (newestGameMode != gameMode) {
         if (newestGameMode == gameModes::editor && gameMode == gameModes::mainMenu) { //then the game is transitioning from menu to editor
@@ -288,7 +299,7 @@ void GameHandler::checkForGameModeChange() {
             editor.paused = false;
         }
         if (newestGameMode == gameModes::mainMenu && gameMode == gameModes::editor) {
-            for (auto& b : menu.buttons) {
+            for (auto& b : menu.buttons) { //shows the buttons in menu (set to visible)
                 b.setVisible(true);
                 mapName.setVisible(true);
             }
@@ -298,8 +309,10 @@ void GameHandler::checkForGameModeChange() {
     }
 }
 
+//handles general playerinput not covered by buttons in main menu and their functions and editors handleplayerinput-method
+//it only covers the escape button for now
 void GameHandler::handlePlayerInput() {
-    bool escVerdiHolder = playerInput.esc;
+    bool escVerdiHolder = playerInput.esc; //so that the esc-button will only be registered once even if held over multiple frames
     if (playerInput.esc && escDownLastFrame) {
         playerInput.esc = false;
     }
@@ -320,6 +333,7 @@ void GameHandler::handlePlayerInput() {
     }
 }
 
+//this function only adds an empty map if there are no maps in the map-folder
 void GameHandler::confirmMaps() {
     int numberOfMaps = distance(filesystem::directory_iterator(mapsFilePath), filesystem::directory_iterator{});
     if (!numberOfMaps) {
@@ -332,6 +346,6 @@ void GameHandler::confirmMaps() {
     }
 }
 
-void GameHandler::play() {
-
-}
+//void GameHandler::play() {
+//
+//}

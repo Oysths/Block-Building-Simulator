@@ -26,6 +26,7 @@ static const array<array<int, 4>, 6> cubeSurfaces = {{ //these are the index "pa
     {2, 3, 6, 7}
 }};
 
+//gives screen coords of points based on three dimensional coords
 array<int, 2> screenCoords(double x, double y, double z) {
     double screenX = frameScaling*(fov*x/z);
     double screenY = frameScaling*(fov*y/z);
@@ -35,18 +36,21 @@ array<int, 2> screenCoords(double x, double y, double z) {
     return {static_cast<int>(round(screenX)), static_cast<int>(round(screenY))};
 }
 
+//applies yaw-matrix
 array<double, 2> yawRotation(double x, double z, double& c, double& s) { //roterer pointsa langs xz-planet gitt en vinkel (parametere er absolutte størrelser)
     double newX = x*c + z*s;
     double newZ = -x*s + z*c;
     return {newX, newZ};
 }
 
+//applies pitch-matrix
 array<double, 2> pitchRotation(double y, double z, double& c, double& s) {
     double newY = y*c - z*s;
     double newZ = y*s + z*c;
     return {newY, newZ};
 }
 
+//applies roll-matrix
 array<double, 2> rollRotation(double x, double y, double& c, double& s) {
     double newX = x*c - y*s;
     double newY = x*s + y*c;
@@ -98,6 +102,38 @@ array<int, 8> getBlockIndexes(int x, int y, int z, World& world) { //this functi
     return returnArray;
 }
 
+//converts BlockColors-class to Color-class
+Color getColor(BlockColors& color) {
+    Color defaultReturn {Color::green};
+    switch (color) { //returns the correct corresponing color
+        case BlockColors::red:
+            return Color::red;
+        case BlockColors::orange:
+            return Color::orange;
+        case BlockColors::yellow:
+            return Color::yellow;
+        case BlockColors::green:
+            return Color::green;
+        case BlockColors::blue:
+            return Color::blue;
+        case BlockColors::purple:
+            return Color::purple;
+        case BlockColors::black:
+            return Color::black;
+        case BlockColors::white:
+            return Color::white;
+        case BlockColors::grey:
+            return Color::grey;
+        case BlockColors::brown:
+            return Color::brown;
+        case BlockColors::burly_wood:
+            return Color::burly_wood;
+        case BlockColors::pink:
+            return Color::pink;
+    }
+    return defaultReturn;
+}
+
 //DefaultBlock-class------------------------------------------------
 DefaultBlock::DefaultBlock(int x, int y, int z, World& world): pointIndexes(getBlockIndexes(x, y, z, world)), world{&world}
 {}
@@ -107,7 +143,7 @@ Block::Block(int x, int y, int z, World& world, BlockColors& color): DefaultBloc
 {}
 
 //need to define this overloaded operator in the cpp file in order to avoid a multiple definitions error
-bool Block::operator<(const Block& rhs) {
+bool Block::operator<(const Block& rhs) { //returns whether left has shortest euclidean distance (compared to right)
     vector<WorldPointDouble>& transformedPoints = world->getTransformedPoints();
 
     WorldPointDouble p1 = transformedPoints.at(pointIndexes[0]); //takes the middle point of the blocks for reference, as any random point (even though they are the same index) leads to the possibility of the point in the cube furthest away being closer than that same point in the cube closer to us
@@ -130,6 +166,7 @@ bool Block::operator<(const Block& rhs) {
 
 
 //World-class-------------------------------------------------------
+//offsets (translation) then rotates the points in the world accordint to player posision and angle(s)
 void World::transformCoords(Player player) {
     transformedPoints.clear();
 
@@ -171,6 +208,7 @@ void World::transformCoords(Player player) {
 
 }
 
+//inactive function
 void World::renderPoints(AnimationWindow& window) {
     //cout << transformedPoints.size() << endl;
     double x;
@@ -199,6 +237,7 @@ void World::renderPoints(AnimationWindow& window) {
     }
 }
 
+//inactive function
 void World::renderLines(AnimationWindow& window) {
     WorldPointDouble p1 {}; //p1 and p2 are the points which make up a line in a cube (two corners)
     WorldPointDouble p2 {};
@@ -242,6 +281,7 @@ void World::renderLines(AnimationWindow& window) {
     }
 }
 
+//inactive function
 void World::renderSurfaces(AnimationWindow& window) {
     WorldPointDouble p1 {}; //p1 and p2 are the points which make up a line in a cube (two corners)
     WorldPointDouble p2 {};
@@ -309,6 +349,7 @@ void World::renderSurfaces(AnimationWindow& window) {
     }
 }
 
+//adds a block to the world
 void World::addBlock(int x, int y, int z, BlockColors& color) {
     try { //tries to add block to map
         blocks.push_back(Block {x, y, z, *this, color}); //sender også objektet det ble kalt fra som reference
@@ -320,8 +361,8 @@ void World::addBlock(int x, int y, int z, BlockColors& color) {
 void World::placeBlock (Player player) {
     //cout << "Prøver å plassere" << endl;
     double placementRange = 20.0;
-    double deltaRange = 0.01;
-    double x = -cos(player.angles[1])*sin(player.angles[0])*deltaRange;
+    double deltaRange = 0.01; //range of one step, typically given by r in polar coordinates
+    double x = -cos(player.angles[1])*sin(player.angles[0])*deltaRange; //polar coordinates in three dimensions
     double z = cos(player.angles[0])*cos(player.angles[1])*deltaRange;
     double y = sin(player.angles[1])*deltaRange; 
     //cout << "x: " << x << ", y: " << y << ", z: " << z << endl;
@@ -333,7 +374,7 @@ void World::placeBlock (Player player) {
     WorldPointInt p2;
 
     bool breakOutOfLoop = false;
-    for (double i = 0; i < placementRange; i += deltaRange) {
+    for (double i = 0; i < placementRange; i += deltaRange) { //goes in a straight line until it meets a block or the placementrange is reached
         p = p + deltaRangeVector; //have defined addition for this type
         
         for (auto& b : blocks) { //iterates blocks to check the first iteration inside a block, when it has hit a block, it goes one iteration backwards and places a block there
@@ -356,8 +397,8 @@ void World::placeBlock (Player player) {
 
 void World::breakBlock(Player player) {
     double breakRange = 20.0;
-    double deltaRange = 0.01;
-    double x = -cos(player.angles[1])*sin(player.angles[0])*deltaRange;
+    double deltaRange = 0.01; //range of one step, typically given by r in polar coordinates
+    double x = -cos(player.angles[1])*sin(player.angles[0])*deltaRange; //polar coordinates for three dimensions
     double z = cos(player.angles[0])*cos(player.angles[1])*deltaRange;
     double y = sin(player.angles[1])*deltaRange; 
     //cout << "x: " << x << ", y: " << y << ", z: " << z << endl;
@@ -369,7 +410,7 @@ void World::breakBlock(Player player) {
     WorldPointInt p2;
 
     bool breakOutOfLoop = false;
-    for (double i = 0; i < breakRange; i += deltaRange) {
+    for (double i = 0; i < breakRange; i += deltaRange) { //goes in a straight line until it meets a block or the breakrange is reached
         p = p + deltaRangeVector; //have defined addition for this type
         
         for (int j = 0; j < blocks.size(); j++) { //iterates blocks to check the first iteration inside a block, when it has hit a block, it goes one iteration backwards and places a block there
@@ -389,13 +430,14 @@ void World::breakBlock(Player player) {
 }
 
 void World::sortBlocks() {
-    sort(blocks); //from the algorithm-library std_lib_facilities provides. It automatically uses the overloaded less than operator we defined for the block class
+    sort(blocks); //from the algorithm-library std_lib_facilities provides. It automatically uses the overloaded less than operator defined for the block class
 }
 
 vector<WorldPointDouble>& World::getTransformedPoints() {
     return transformedPoints;
 }
 
+//comparison function for sorting cube surfaces by euclidean distance
 bool compareSurfacesDescending(const array<WorldPointDouble, 4>& a, const array<WorldPointDouble, 4>& b) {
     //we don't divide by four to find average and we don't square root in return because the return value is a bool and it is mathematecally identical to not do so and it saves time
     double avgAz = a[0].z + a[1].z + a[2].z + a[3].z;
@@ -412,6 +454,7 @@ bool compareSurfacesDescending(const array<WorldPointDouble, 4>& a, const array<
     //return avgA > avgB;
 }
 
+//renders a side of a block (with color) and draws a black line between the corner pairs
 void World::renderBlockSide(AnimationWindow& window, Point corner1, Point corner2, Point corner3, Point corner4, Color& color) {
     window.draw_triangle(corner1, corner2, corner3, color); //draw two triangles to make the side of the cube which have four sides
     window.draw_triangle(corner2, corner3, corner4, color);
@@ -426,23 +469,23 @@ void World::renderBlocks(AnimationWindow& window) {
     //cout << "Skal rendere: " << referencePoints.size() << " points" << endl;
     starttidFrame = chrono::steady_clock::now();
     vector<array<WorldPointDouble, 4>> surfaces; //list with every surface in it (the four points), the plan is to sort it and then render in the sorted order
-    WorldPointDouble p1 {}; //p1 and p2 are the points which make up a line in a cube (two corners)
+    WorldPointDouble p1 {}; //p(x) are the points which make up a line in a cube (two corners)
     WorldPointDouble p2 {};
     WorldPointDouble p3 {};
     WorldPointDouble p4 {};
-    for (int i = blocks.size()-1; i >= 0; i--) {
+    for (int i = blocks.size()-1; i >= 0; i--) { //iterates blocks (from furthest away to closest)
         Block b = blocks.at(i);
         BlockColors color {b.color};
         Color realColor = getColor(color);
         surfaces = {};
         for (const array surfaceIndexes : cubeSurfaces) {
-            p1 = transformedPoints[b.pointIndexes[surfaceIndexes[0]]];
+            p1 = transformedPoints[b.pointIndexes[surfaceIndexes[0]]]; //these are the corner points in a side
             p2 = transformedPoints[b.pointIndexes[surfaceIndexes[1]]];
             p3 = transformedPoints[b.pointIndexes[surfaceIndexes[2]]];
             p4 = transformedPoints[b.pointIndexes[surfaceIndexes[3]]];
             surfaces.push_back({p1, p2, p3, p4});
         }
-        sort(surfaces.begin(), surfaces.end(), compareSurfacesDescending);
+        sort(surfaces.begin(), surfaces.end(), compareSurfacesDescending); //sorts the surfaces based on distance to player from middle point
         for (int j = 3; j < 6; j++) { //a maximum of three surfaces could possibly be visible in three dimensions per cube anyways, so starting at j = 3 saves time
             p1 = surfaces[j][0];
             p2 = surfaces[j][1];
@@ -454,6 +497,7 @@ void World::renderBlocks(AnimationWindow& window) {
             //    continue;
             //}
             
+            //calculates where the different corners of the cube are on the screen
             const array<int, 2>& sCoords1 = screenCoords(p1.x, p1.y, p1.z);
             int sX1 = sCoords1[0];
             int sY1 = sCoords1[1];
@@ -474,6 +518,7 @@ void World::renderBlocks(AnimationWindow& window) {
             int sY4 = sCoords4[1];
             Point corner4 = {sX4, sY4};
 
+            //renders the blocks
             if (p1.z > fov || p2.z > fov || p3.z > fov || p4.z > fov) {
                 if (0 <= sX1 && sX1 <= windowWidth) {
                     if (0 <= sY1 && sY1 <= windowHeight) {
@@ -505,11 +550,11 @@ void World::renderBlocks(AnimationWindow& window) {
 }
 
 void World::saveMapData() {
-    filesystem::path fileName{"Data/Maps/"};
+    filesystem::path fileName{"Data/Maps/"}; //establish ofstream
     fileName += mapName + ".txt";
     ofstream outputStream{fileName};
     outputStream << blocks.size() << endl;
-    for (auto& b : blocks) {
+    for (auto& b : blocks) { //format: x y z color(int-indexed)
         outputStream << referencePoints.at(b.pointIndexes[0]).x << " ";
         outputStream << referencePoints.at(b.pointIndexes[0]).y << " ";
         outputStream << referencePoints.at(b.pointIndexes[0]).z << " ";
@@ -518,7 +563,7 @@ void World::saveMapData() {
 }
 
 void World::loadMap(string mapNameString) { //loads the map (which consists of the blocks-vector and the referencepoints-vector) by calling the addBlock-function which initializes every block
-    mapName = mapNameString; 
+    mapName = mapNameString; //establishes ifstream
     filesystem::path fileName{"Data/Maps/"};
     fileName += mapName + ".txt";
     ifstream inputStream{fileName};
@@ -549,36 +594,6 @@ void World::loadMap(string mapNameString) { //loads the map (which consists of t
 Player::Player(): activeColor(BlockColors::green), activeColorColor(getColor(activeColor))
 {}
 
-Color getColor(BlockColors& color) {
-    Color defaultReturn {Color::green};
-    switch (color) { //returns the correct corresponing color
-        case BlockColors::red:
-            return Color::red;
-        case BlockColors::orange:
-            return Color::orange;
-        case BlockColors::yellow:
-            return Color::yellow;
-        case BlockColors::green:
-            return Color::green;
-        case BlockColors::blue:
-            return Color::blue;
-        case BlockColors::purple:
-            return Color::purple;
-        case BlockColors::black:
-            return Color::black;
-        case BlockColors::white:
-            return Color::white;
-        case BlockColors::grey:
-            return Color::grey;
-        case BlockColors::brown:
-            return Color::brown;
-        case BlockColors::burly_wood:
-            return Color::burly_wood;
-        case BlockColors::pink:
-            return Color::pink;
-    }
-    return defaultReturn;
-}
 
 void Player::updateColor() {
     switch (activeColor) { //makes sure the correct color is rendered on the block
@@ -645,29 +660,30 @@ void Player::previousColor() { //goes to the next available color, gets the inde
     updateColor();
 }
 
+//moves the button based on button-input, also scales the movement in case of lag
 void Player::move(string button) {
     auto sluttid = std::chrono::steady_clock::now();
     auto varighet = chrono::duration<double>(sluttid-starttidFrame).count();
-    varighet *= 500; //scaler varighet
+    varighet *= 8; //scaler varighet
     //cout << varighet << endl;
     if (button == "W") {
-        coords.z += (varighet/60.0)*trigValues.cXZ; //2 blocks i sekundet (60hz)
-        coords.x -= (varighet/60.0)*trigValues.sXZ;
+        coords.z += varighet*trigValues.cXZ;
+        coords.x -= varighet*trigValues.sXZ;
     } else if (button == "S") {
-        coords.z -= (varighet/60.0)*trigValues.cXZ; //2 blocks i sekundet (60hz)
-        coords.x += (varighet/60.0)*trigValues.sXZ;
+        coords.z -= varighet*trigValues.cXZ;
+        coords.x += varighet*trigValues.sXZ;
     } else if (button == "A") {
-        coords.x -= (varighet/60.0)*trigValues.cXZ; //2 blocks i sekundet (60hz)
-        coords.z -= (varighet/60.0)*trigValues.sXZ;
+        coords.x -= varighet*trigValues.cXZ;
+        coords.z -= varighet*trigValues.sXZ;
     } else if (button == "D") {
-        coords.x += (varighet/60.0)*trigValues.cXZ; //2 blocks i sekundet (60hz)
-        coords.z += (varighet/60.0)*trigValues.sXZ;
+        coords.x += varighet*trigValues.cXZ;
+        coords.z += varighet*trigValues.sXZ;
     } else if (button == "SPACE") {
-        coords.y += varighet/60.0;
+        coords.y += varighet;
     } else if (button == "LSHIFT") {
-        coords.y -= varighet/60.0;
+        coords.y -= varighet;
     } else if (button == "Q") {
-        angles[2] -= 0.02;
+        angles[2] -= 0.02; //not scaled yet, will do it if drones are added
     } else if (button == "E") {
         angles[2] += 0.02;
     }
@@ -679,6 +695,7 @@ void Player::resetPlayer() {
     coords = {0, 2, 0};
 }
 
+//calculates player trig values
 void Player::getTrigValues() {
     //calculates sin and cosine values in advance because it is resource intensive to do so for every block
     double c = cos(angles[0]);

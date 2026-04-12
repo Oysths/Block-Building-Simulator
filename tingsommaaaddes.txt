@@ -1,1 +1,0 @@
-Grouping av m*n blocks (Kan ha sykt my større verdener uten lag) (men da vil ikke euclidean sort funke lenger (burde hatt z-buffer:( ))

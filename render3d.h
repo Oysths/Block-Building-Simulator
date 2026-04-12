@@ -12,10 +12,13 @@ extern const int windowHeight;
 //extern auto sluttid;
 //extern auto varighet;
 
+//colors available in-game
 enum class BlockColors {red, orange, yellow, green, blue, purple, black, white, grey, brown, burly_wood,  pink}; //if you add more colors - make sure that pink is the last one! This is because the game tracks the number of entries in the enum class by pinks numerical value
 
+//converts BlockColors-class to Color-class
 Color getColor(BlockColors& color);
 
+//trigvalues should only be calculated once per frame and not for every point (saves a lot of porcessing time)
 struct TrigValues {
     double cXZ;
     double sXZ;
@@ -58,9 +61,7 @@ struct WorldPointInt { //a three-dimensional point (absolute coordinates are alw
 };
 
 
-//struct Surface
-
-struct DefaultBlock
+struct DefaultBlock //standard 1x1x1 cube
 {
     array<int, 8> pointIndexes; //this is an array of 8 indexes, which are pointers to points in the referencePoints in world class. The array is ordered, meaning the first index points to (0, 0, 0) relative to the blocks coordinate system (the first point). The second point will for example be (0, 0, 1) and the eight point will be (1, 1, 1). These eight points make up a block
     World* world;
@@ -68,12 +69,13 @@ struct DefaultBlock
 
 };
 
-struct Block : public DefaultBlock {
+struct Block : public DefaultBlock { //same as DefaultBlock with the addition of color
     BlockColors color;
     Block(int x, int y, int z, World& world, BlockColors& color); //this is the constructor which will make a block with color
     bool operator<(const Block& rhs);
 };
 
+//basically the same as a map, a 3-dimensional world
 struct World {
     vector<WorldPointInt> referencePoints; //these points will never change and be the reference when we calculate the transformation and rotation every frame
     vector<WorldPointDouble> transformedPoints; //these points are post transformation AND rotation (not only transformation)
@@ -94,40 +96,20 @@ struct World {
     void loadMap(string mapNameString);
 };
 
-//inline bool Block::operator<(const Block& rhs) {
-//    vector<WorldPointDouble>& transformedPoints = world->getTransformedPoints();
-//
-//    WorldPointDouble p1 = transformedPoints.at(pointIndexes[0]); //takes the middle point of the blocks for reference, as any random point (even though they are the same index) leads to the possibility of the point in the cube furthest away being closer than that same point in the cube closer to us
-//    WorldPointDouble p11 = transformedPoints.at(pointIndexes[7]);
-//
-//    double p1x = (p11.x+p1.x);
-//    double p1y = (p11.y+p1.y);
-//    double p1z = (p11.z+p1.z);
-//
-//    WorldPointDouble p2 = transformedPoints.at(rhs.pointIndexes[0]);
-//    WorldPointDouble p22 = transformedPoints.at(rhs.pointIndexes[7]);
-//
-//    double p2x = (p22.x+p2.x);
-//    double p2y = (p22.y+p2.y);
-//    double p2z = (p22.z+p2.z);
-//
-//    return p1z*p1z + p1x*p1x + p1y*p1y < p2z*p2z + p2x*p2x + p2y*p2y; //since both blocks are in the transformed system, we only need to check a random z for both blocks and compare them (but they have to be the same index)
-//    //return p1.z < p2.z;
-//}
-
+//information about the player
 struct Player {
-    array<double, 3> angles {0, 0, 0}; //should be in following order: yaw, pitch, roll, same order as rotations matricies
-    array<double, 3> deltaAngles {0, 0, 0}; //used to change angles
+    array<double, 3> angles; //should be in following order: yaw, pitch, roll, same order as rotations matricies
+    array<double, 3> deltaAngles; //used to change angles
     TrigValues trigValues;
-    WorldPointDouble coords {0, 2, 0};
+    WorldPointDouble coords;
     BlockColors activeColor;
     Color activeColorColor; //this is the type that can actually be rendered and is being passed as an argument
     Player();
-    void updateColor();
+    void updateColor(); //updates activecolorcolor
     void nextColor();
     void previousColor();
     void move(string button);
     void getTrigValues();
-    void resetPlayer();
+    void resetPlayer(); //default player values
     //void move(const string& button);
 };
