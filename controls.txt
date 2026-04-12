@@ -1,0 +1,10 @@
+Sorry for at ikke disse vises i spillet:/
+
+WASD - gå rundt
+Q/E - endre roll (sannsynligvis trenger man dem ikke)
+M/P - endre focal length (ender fov)
+Space/Left_Shift - gå opp/ned
+Left_Arrow/Right_Arrow/Mousewheel - neste/forrige farge (synlig på hitmarkeren)
+Right/Left click - plassere eller knuse blokken
+Ctrl + S - lagre map til fil
+Esc - gå til menu (hvis i editor) / gå ut av spillet (hvis i main menu)
